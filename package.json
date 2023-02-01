@@ -10,15 +10,19 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:vsnear1.helloWorld",
-    "onFileSystem:nearfs"
+    "onCommand:nearfs.workspaceInit"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "nearfs.workspaceInit",
-        "title": "New NEAR.social Workspace",
+        "title": "New Workspace",
+        "category": "NEAR.social"
+      },
+      {
+        "command": "nearfs.openWidgetsFromAccount",
+        "title": "Open Account",
         "category": "NEAR.social"
       }
     ],
@@ -26,6 +30,9 @@
       "commandPalette": [
         {
           "command": "nearfs.workspaceInit"
+        },
+        {
+          "command": "nearfs.openWidgetsFromAccount"
         }
       ]
     }

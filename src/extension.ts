@@ -1,31 +1,24 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import {NearFS, WidgetAccountDir} from './fs-provider';
+import { NEAR_FS_SCHEME } from './config';
+import { openWidgetsFromAccount } from './near-openWidgetsFromAccount';
+import {NearFS} from './NearFS';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
   const widgetsFS = new NearFS();
-  context.subscriptions.push(vscode.workspace.registerFileSystemProvider('nearfs', widgetsFS, {isCaseSensitive: true}));
+  
+  context.subscriptions.push(vscode.workspace.registerFileSystemProvider(NEAR_FS_SCHEME, widgetsFS, {isCaseSensitive: true}));
 
-  context.subscriptions.push(vscode.commands.registerCommand('nearfs.workspaceInit', _ => {
-    vscode.workspace.updateWorkspaceFolders(0, null, {uri: vscode.Uri.parse('nearfs:/'), name: "NEAR.social"});
-  }));
+	const nearWidgetContentProvider = new class implements vscode.TextDocumentContentProvider {
+		onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
+		onDidChange = this.onDidChangeEmitter.event;
+		provideTextDocumentContent(uri: vscode.Uri): string {
+			return "hello near scheme";
+		}
+	};
+	context.subscriptions.push(vscode.commands.registerCommand('near.openWidgetsFromAccount', openWidgetsFromAccount));
 
-  context.subscriptions.push(vscode.commands.registerCommand('nearfs.openWidgetsFromAccount', async () => {
-    const accountId = await vscode.window.showInputBox({ placeHolder: 'mainnet account id' });
-    if (accountId) {
-      widgetsFS.loadAccount(accountId);
-      widgetsFS.root.entries.set(accountId, new WidgetAccountDir(accountId));
-    }
-
-  }));
-
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "vsnear1" is now active!');
+  console.log('vsnear loaded!');
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand

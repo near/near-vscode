@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as vscode from "vscode";
 import { providers } from "near-api-js";
 import { NearWidget, WidgetFile } from "./NearWidget";
@@ -75,7 +76,7 @@ export class NearAccount {
   async reloadWidgets() {
     const args = `{"keys":["${this.accountId}/widget/**"]}`;
     const argsBase64 = Buffer.from(args).toString("base64");
-    const rawResult: any = await callRpc(`get-${SOCIAL_CONTRACT_ACCOUNT}-${args}`, {
+    const rawResult: any = await callRpc(`Account ${this.accountId}`, `get-${SOCIAL_CONTRACT_ACCOUNT}-${args}`, {
       request_type: "call_function",
       account_id: SOCIAL_CONTRACT_ACCOUNT,
       method_name: "get",

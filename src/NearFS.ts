@@ -1,6 +1,55 @@
+import { rest } from "lodash";
 import * as vscode from "vscode";
+import {
+  FS_EXT,
+  isValidAccountId,
+  isValidWidgetFsName,
+  NEAR_FS_SCHEME,
+} from "./config";
 import { NearAccount, NearAccountDir } from "./NearAccount";
 import { NearWidget, WidgetFile } from "./NearWidget";
+
+const FS_FILTER = [".vscode", ".git"];
+export const isValidNearFsUri = (uri: vscode.Uri): boolean => {
+  if (uri.scheme !== NEAR_FS_SCHEME) {
+    return false;
+  }
+  const parts = uri.path.split("/");
+  const [root, firstPart, ...restParts] = parts;
+  const rootOk = root === "";
+  if (!rootOk) {
+    // console.log('$$ not valid uri', uri);
+    return false;
+  }
+  if (parts.length === 1) {
+    return true;
+  }
+  const firstPartIsAccountId = isValidAccountId(firstPart);
+  if (!firstPartIsAccountId) {
+    // console.log('$$ not valid uri', uri);
+    return false;
+  }
+  if (parts.length === 2) {
+    // uri is only accountId
+    return true;
+  }
+  if (parts.length > 3) {
+    // widgets aren't nested in account
+    // console.log('$$ not valid uri', uri);
+    return false;
+  }
+  const maybeWidgetName = restParts[0];
+  if (FS_FILTER.includes(maybeWidgetName)) {
+    // console.log('$$ not valid uri', uri);
+    return false;
+  }
+  const widgetNameOk = isValidWidgetFsName(maybeWidgetName);
+  if (!widgetNameOk) {
+    // console.log('$$ not valid uri', uri);
+    return false;
+  }
+  return true;
+};
 
 export class FSRoot implements vscode.FileStat {
   type = vscode.FileType.Directory;
@@ -31,8 +80,12 @@ export class NearFS implements vscode.FileSystemProvider {
     this.root.accountDirs.set(accountId, accountDir);
   }
 
-  stat(uri: vscode.Uri): Promise<vscode.FileStat> {
-    return this._lookup(uri, false);
+  async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
+    if (!isValidNearFsUri(uri)) {
+      throw vscode.FileSystemError.FileNotFound();
+    }
+    const entry = await this._lookup(uri, false, true);
+    return entry;
   }
 
   async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
@@ -60,7 +113,9 @@ export class NearFS implements vscode.FileSystemProvider {
     const entry = await this._lookupAsFile(uri, false);
     if (entry) {
       if (entry.widget.code === null) {
-        throw new vscode.FileSystemError(`Error loading this file content from chain.`);
+        throw new vscode.FileSystemError(
+          `Error loading this file content from chain.`
+        );
       }
       return Buffer.from(entry.widget.code);
     } else {
@@ -96,9 +151,17 @@ export class NearFS implements vscode.FileSystemProvider {
 
   // --- lookup
 
-  private async _lookup(uri: vscode.Uri, silent: false): Promise<Entry>;
-  private async _lookup(uri: vscode.Uri, silent: boolean): Promise<Entry | undefined>;
-  private async _lookup(uri: vscode.Uri, silent: boolean): Promise<Entry | undefined> {
+  private async _lookup(uri: vscode.Uri, silent: false, forceRefresh?: boolean): Promise<Entry>;
+  private async _lookup(
+    uri: vscode.Uri,
+    silent: boolean,
+    forceRefresh?: boolean,
+  ): Promise<Entry | undefined>;
+  private async _lookup(
+    uri: vscode.Uri,
+    silent: boolean,
+    forceRefresh?: boolean,
+  ): Promise<Entry | undefined> {
     const [root, accountId, widgetFsName] = uri.path.split("/");
     if (!accountId && !widgetFsName) {
       return this.root;
@@ -112,10 +175,15 @@ export class NearFS implements vscode.FileSystemProvider {
       }
     }
     if (!widgetFsName) {
+      if (forceRefresh) {
+        await accountDir?.account.reloadWidgets();
+      }
       return accountDir;
     }
     const widgetName = NearWidget.nameFromFsName(widgetFsName as WidgetFSName);
-    const widgetFileEntry = await accountDir?.account.getOneWidgetFile(widgetName);
+    const widgetFileEntry = await accountDir?.account.getOneWidgetFile(
+      widgetName
+    );
     if (!widgetFileEntry) {
       if (!silent) {
         throw vscode.FileSystemError.FileNotFound(uri);
@@ -131,7 +199,7 @@ export class NearFS implements vscode.FileSystemProvider {
     silent: boolean
   ): Promise<WidgetFile> {
     const entry = await this._lookup(uri, silent);
-    if (typeof entry === 'undefined') {
+    if (typeof entry === "undefined") {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
     if (entry.type === vscode.FileType.Directory) {

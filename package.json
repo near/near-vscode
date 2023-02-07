@@ -11,7 +11,8 @@
   ],
   "activationEvents": [
     "onCommand:near.openWidgetsFromAccount",
-    "onFileSystem:near"
+    "onFileSystem:near",
+    "onWebviewPanel:viewType"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -20,12 +21,20 @@
         "command": "near.openWidgetsFromAccount",
         "title": "Open Account",
         "category": "NEAR.social"
+      },
+      {
+        "command": "near.showPreviewPanel",
+        "title": "Show Widget preview panel",
+        "category": "NEAR.social"
       }
     ],
     "menus": {
       "commandPalette": [
         {
           "command": "near.openWidgetsFromAccount"
+        },
+        {
+          "command": "near.showPreviewPanel"
         }
       ]
     }

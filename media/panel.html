@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+	<html lang="en" style="padding: 0; margin: 0;">
+	<head>
+		<meta charset="UTF-8">
+
+		<!--
+			Use a content security policy to only allow loading images from https or from our extension directory,
+			and only allow scripts that have a specific nonce.					
+		-->
+		
+		<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}}; img-src {{cspSource}} https:; script-src 'nonce-{{nonce}}';"> -->
+		
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link href="{{stylesResetUri}}" rel="stylesheet">
+		<link href="{{stylesMainUri}}" rel="stylesheet">
+
+		<title>NEAR Social</title>
+	</head>
+	<body>		
+	
+		<div class="code-iframe-wrap">
+			<iframe id="code-widget" src="{{widgetCode}}" class="code-iframe"></iframe>
+		</div>
+<!-- 
+		<div>
+			<div style="display: inline-block;">
+				Widget name:
+				<input type="text" value="" id="widget-name-input" />
+			</div>
+			<div style="display: inline-block;">
+				Widget tag:
+				<input type="text" value="" id="widget-tag-input" />
+			</div>			
+			<div style="display: inline-block; vertical-align: bottom;">
+				<input type="button" value="Publish" id="publish-button" class="small-button" />
+			</div>			
+		</div> -->
+
+		<script nonce="{{nonce}}" src="{{scriptUri}}"></script>
+	</body>
+</html>

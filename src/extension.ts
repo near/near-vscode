@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
 import { window } from "vscode";
-import { NEAR_FS_SCHEME } from "./config";
+import { NEAR_FS_SCHEME } from "./util";
 import { openWidgetsFromAccount } from "./near-openWidgetsFromAccount";
 import { NearFS } from "./NearFS";
-import { WidgetPreviewFactory } from "./WidgetEditorPreview";
+import { getWidget, getWidgetByFsUri } from "./NearWidget";
+import { WidgetPreviewFactory } from "./WidgetPreview";
 
 export function activate(context: vscode.ExtensionContext) {
   const widgetsFS = new NearFS();
@@ -18,11 +19,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("near.showWidgetPreview", () => {
-      // NearSocialViewer.createOrShow(context);
-      const uri = window.activeTextEditor?.document?.uri || null;
-      if (uri) {
-        WidgetPreviewFactory.getOrCreate(uri);
+      let error = false;
+      const uri = window.activeTextEditor?.document?.uri.toString() || null;
+      if (uri !== null) {
+        const widget = getWidget(uri);
+        if (widget) {
+          WidgetPreviewFactory.getOrCreate(widget.uri);
+        } else {
+          error = true;
+        }
       } else {
+        error = true;
+      }
+      if (error) {
         vscode.window.showInformationMessage(
           "Error showing preview. Please report this."
         );

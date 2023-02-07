@@ -1,7 +1,7 @@
 import { ProgressLocation, window } from "vscode";
 import * as vscode from 'vscode';
 import { NearFS } from "./NearFS";
-import { NEAR_FS_SCHEME } from "./config";
+import { NEAR_FS_SCHEME } from "./util";
 import { getWidgetWithCode, NearSocialViewer } from "./NearSocialViewer";
 
 export const openWidgetsFromAccount = async (context: vscode.ExtensionContext) => {

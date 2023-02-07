@@ -3,9 +3,9 @@ import * as vscode from "vscode";
 import {
   FS_EXT,
   isValidAccountId,
-  isValidWidgetFsName,
+  isValidWidgetFsPath,
   NEAR_FS_SCHEME,
-} from "./config";
+} from "./util";
 import { NearAccount, NearAccountDir } from "./NearAccount";
 import { NearWidget, WidgetFile } from "./NearWidget";
 
@@ -43,7 +43,7 @@ export const isValidNearFsUri = (uri: vscode.Uri): boolean => {
     // console.log('$$ not valid uri', uri);
     return false;
   }
-  const widgetNameOk = isValidWidgetFsName(maybeWidgetName);
+  const widgetNameOk = isValidWidgetFsPath(maybeWidgetName);
   if (!widgetNameOk) {
     // console.log('$$ not valid uri', uri);
     return false;

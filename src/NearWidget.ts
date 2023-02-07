@@ -1,11 +1,28 @@
 import * as vscode from "vscode";
-import { FS_EXT, NEAR_FS_SCHEME } from "./config";
-import { WidgetPreview, WidgetPreviewFactory } from "./WidgetEditorPreview";
-import { setWidget } from "./WidgetRegistry";
+import { fsUriStrToUriStr, FS_EXT, NEAR_FS_SCHEME } from "./util";
 
-export const WidgetRegistry: Record<string, NearWidget> = {
+const registry: Map<string, NearWidget> = new Map();
 
+export const getWidget = (uriStr :string): NearWidget | null => {
+    const w = registry.get(uriStr);
+    return w || null;
 };
+
+export const getWidgetByFsUri = (fsUriStr: string): NearWidget | null => {
+  const uriStr = fsUriStrToUriStr(fsUriStr);
+  const w = registry.get(uriStr);
+  return w || null;
+};
+
+const setWidget = (widget: NearWidget): void => {
+    registry.set(widget.uri.toString(), widget);
+};
+
+const disposeWidget = (widget: NearWidget | string): void => {
+  const uri = typeof widget === 'string' ?  widget : widget.uri.toString();
+  registry.delete(uri);
+};
+
 
 export interface WidgetFile extends vscode.FileStat {
   type: vscode.FileType.File;
@@ -26,7 +43,6 @@ export class NearWidget {
   private constructor(accountId: AccountId, name: WidgetName, code: string | null) {
     this.accountId = accountId;
     this.name = name;
-    this.name = name;
     this.uri = this._makeUri();
     this.code = code;
   }
@@ -38,7 +54,7 @@ export class NearWidget {
   private _makeUri(): vscode.Uri {
     const uri = vscode.Uri.from({
       scheme: NEAR_FS_SCHEME,
-      path: `${this.accountId}/${this.name}`,
+      path: `/${this.accountId}/${this.name}${FS_EXT}`,
     });
     return uri;
   }

@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as vscode from "vscode";
 import { NearWidget, WidgetFile } from "./NearWidget";
 import { callRpc } from "./loader";
-import { SOCIAL_CONTRACT_ACCOUNT } from "./config";
+import { SOCIAL_CONTRACT_ACCOUNT } from "./util";
 
 export const accountsCache: Record<AccountId, NearAccount> = {};
 

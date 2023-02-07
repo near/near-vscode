@@ -2,8 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { window } from "vscode";
-import { NearWidget } from "./NearWidget";
-import { getWidget } from "./WidgetRegistry";
+import { getWidget } from "./NearWidget";
 
 export class WidgetPreviewFactory {
   private static instance: WidgetPreviewFactory;
@@ -58,12 +57,12 @@ export class WidgetPreview {
 
   readonly panel: vscode.WebviewPanel;
   readonly context: vscode.ExtensionContext;
-  readonly uri: vscode.Uri;
+  readonly widgetUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
 
   public static create(
     extensionContext: vscode.ExtensionContext,
-    uri: vscode.Uri,
+    widgetUri: vscode.Uri,
     onDispose: () => void,
   ) {
     const column = vscode.ViewColumn.Beside;
@@ -80,17 +79,17 @@ export class WidgetPreview {
       "media",
       isDark ? "near-dark.svg" : "near-light.svg",
     );
-    const newPreview = new WidgetPreview(uri, panel, extensionContext, onDispose);
+    const newPreview = new WidgetPreview(widgetUri, panel, extensionContext, onDispose);
     return newPreview;
   }
 
   private constructor(
-    uri: vscode.Uri,
+    widgetUri: vscode.Uri,
     panel: vscode.WebviewPanel,
     context: vscode.ExtensionContext,
     onDispose: () => void,
   ) {
-    this.uri = uri;
+    this.widgetUri = widgetUri;
     this.panel = panel;
     this.context = context;
 
@@ -125,7 +124,7 @@ export class WidgetPreview {
       (message) => {
         switch (message.command) {
           case "request-update-code":
-            this.updateCode(getWidgetWithCode());
+            this.updateCode(getWidgetSourceCode(this.widgetUri.toString()));
             return;
         }
       },
@@ -152,12 +151,12 @@ export class WidgetPreview {
   }
 
   private _getTitle() {
-    return `Preview ${this.uri.toString()}`;
+    return `Preview ${this.widgetUri.toString()}`;
   }
 
   private _update() {
     this.panel.title = this._getTitle();
-    this.panel.webview.html = this._getHtmlForWebview(this.panel.webview);
+    this.panel.webview.html = this._getHtmlForWebview();
   }
 
   private getPanelHtmlFileContent(context: vscode.ExtensionContext): string {
@@ -167,7 +166,8 @@ export class WidgetPreview {
     return fs.readFileSync(filePath.fsPath, "utf8");
   }
 
-  private _getHtmlForWebview(webview: vscode.Webview) {
+  private _getHtmlForWebview() {
+    const webview = this.panel.webview;
     const scriptPathOnDisk = vscode.Uri.joinPath(
       this.context.extensionUri,
       "media",
@@ -186,7 +186,7 @@ export class WidgetPreview {
     const html = this.getPanelHtmlFileContent(this.context)
       .replaceAll("{{cspSource}}", webview.cspSource)
       .replaceAll("{{nonce}}", getNonce())
-      .replace("{{widgetCode}}", getWidgetWithCode())
+      .replace("{{widgetCode}}", getWidgetSourceCode(this.widgetUri.toString()))
       .replace(
         "{{stylesResetUri}}",
         webview.asWebviewUri(styleResetPath).toString()
@@ -221,7 +221,7 @@ function getWidgetUrl(network: string) {
     : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
 }
 
-export function getWidgetWithCode(widgetUriStr: string): string {
+export function getWidgetSourceCode(widgetUriStr: string): string {
   const widget = getWidget(widgetUriStr);
   if (!widget || widget.code === null) {
     window.showErrorMessage(`Error loading preview: ${widgetUriStr}`);

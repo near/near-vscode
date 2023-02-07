@@ -2,6 +2,12 @@
 // This script will be run within the webview itself
 // It cannot access the main VS Code APIs directly.
 
+function getWidgetUrl(network) {
+  return network === "testnet"
+    ? "https://test.near.social/#/embed/test_alice.testnet/widget/remote-code?code="
+    : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
+}
+
 (function () {
   const vscode = acquireVsCodeApi();
   const oldState = vscode.getState();
@@ -9,20 +15,21 @@
   console.log("Initial state", oldState);
 
   if (oldState?.code) {
-    setIframeContent(oldState.code);
+    setIframeSrc(oldState.code);
   }
 
   document.querySelector(".btn-reload")?.addEventListener("click", (e) => {
     requestUpdateCode();
   });
 
-  const setIframeContent = (content) => {
-    document.getElementById("code-widget")?.setAttribute("src", content);
+  const setIframeSrc = (content) => {
+    const iframeSrc = getWidgetUrl() + encodeURIComponent(content);
+    document.getElementById("code-widget")?.setAttribute("src", iframeSrc);
   };
 
-  // const requestUpdateCode = () => {
-  //   vscode.postMessage({ command: "request-update-code" });
-  // };
+  const requestUpdateCode = () => {
+    vscode.postMessage({ command: "request-update-code" });
+  };
 
   // Handle messages sent from the extension to the webview
   window.addEventListener("message", (event) => {
@@ -31,7 +38,7 @@
       case "update-code":
         if (message.code) {
           vscode.setState({ code: message.code });
-          setIframeContent(message.code);
+          setIframeSrc(message.code);
         }
         break;
       // case "account-details": {
@@ -40,6 +47,7 @@
       // }
     }
   });
+  requestUpdateCode();
 })();
 
 // /**

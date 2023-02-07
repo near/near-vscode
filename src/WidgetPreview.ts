@@ -42,7 +42,7 @@ export class WidgetPreviewFactory {
     const newPreview = WidgetPreview.create(
       WidgetPreviewFactory.instance.context,
       widgetUri,
-      () => WidgetPreviewFactory.disposePreview(widgetUri),
+      () => WidgetPreviewFactory.disposePreview(widgetUri)
     );
     WidgetPreviewFactory.instance.previews[widgetUri.toString()] = newPreview;
   }
@@ -63,26 +63,34 @@ export class WidgetPreview {
   public static create(
     extensionContext: vscode.ExtensionContext,
     widgetUri: vscode.Uri,
-    onDispose: () => void,
+    onDispose: () => void
   ) {
     const viewColumn = vscode.ViewColumn.Beside;
 
     const panel = vscode.window.createWebviewPanel(
       WidgetPreview.viewType,
-      '',
+      "",
       {
         viewColumn,
         preserveFocus: true,
       },
       getWebviewOptions(extensionContext.extensionUri)
     );
-    const isDark = [vscode.ColorThemeKind.Dark, vscode.ColorThemeKind.Dark].includes(vscode.window.activeColorTheme.kind);
+    const isDark = [
+      vscode.ColorThemeKind.Dark,
+      vscode.ColorThemeKind.Dark,
+    ].includes(vscode.window.activeColorTheme.kind);
     panel.iconPath = vscode.Uri.joinPath(
       extensionContext.extensionUri,
       "media",
-      isDark ? "near-dark.svg" : "near-light.svg",
+      isDark ? "near-dark.svg" : "near-light.svg"
     );
-    const newPreview = new WidgetPreview(widgetUri, panel, extensionContext, onDispose);
+    const newPreview = new WidgetPreview(
+      widgetUri,
+      panel,
+      extensionContext,
+      onDispose
+    );
     return newPreview;
   }
 
@@ -90,15 +98,16 @@ export class WidgetPreview {
     widgetUri: vscode.Uri,
     panel: vscode.WebviewPanel,
     context: vscode.ExtensionContext,
-    onDispose: () => void,
+    onDispose: () => void
   ) {
     this.widgetUri = widgetUri;
     this.panel = panel;
     this.context = context;
 
     // Set the webview's initial html content
-    this._update();
-
+    this.panel.title = `Preview ${this.widgetUri.toString()}`;
+    setHtmlForWebview(context, panel);
+    
     // Listen for when the panel is disposed
     // This happens when the user closes the panel or when the panel is closed programmatically
     this.panel.onDidDispose(
@@ -113,10 +122,8 @@ export class WidgetPreview {
     // Update the content based on view changes
     this.panel.onDidChangeViewState(
       (e) => {
-        console.log('changed state', e, this.panel.visible);
-        if (this.panel.visible) {
-          this._update();
-        }
+        console.log("onDidChangeViewState", {visible: e.webviewPanel.visible, active: e.webviewPanel.active, viewColumn: e.webviewPanel.viewColumn});
+        this.updateCode();
       },
       null,
       this._disposables
@@ -127,7 +134,7 @@ export class WidgetPreview {
       (message) => {
         switch (message.command) {
           case "request-update-code":
-            this.updateCode(getWidgetSourceCode(this.widgetUri.toString()));
+            this.updateCode();
             return;
         }
       },
@@ -136,7 +143,8 @@ export class WidgetPreview {
     );
   }
 
-  public updateCode(code: string) {
+  public updateCode() {
+    const code = getWidgetSourceCode(this.widgetUri.toString());
     if (code) {
       this.panel.webview.postMessage({ command: "update-code", code });
     }
@@ -152,59 +160,53 @@ export class WidgetPreview {
       }
     }
   }
-
-  private _getTitle() {
-    return `Preview ${this.widgetUri.toString()}`;
-  }
-
-  private _update() {
-    this.panel.title = this._getTitle();
-    this.panel.webview.html = this._getHtmlForWebview();
-  }
-
-  private getPanelHtmlFileContent(context: vscode.ExtensionContext): string {
-    const filePath: vscode.Uri = vscode.Uri.file(
-      path.join(context.extensionPath, "media", "panel.html")
-    );
-    return fs.readFileSync(filePath.fsPath, "utf8");
-  }
-
-  private _getHtmlForWebview() {
-    const webview = this.panel.webview;
-    const scriptPathOnDisk = vscode.Uri.joinPath(
-      this.context.extensionUri,
-      "media",
-      "main.js"
-    );
-    const styleResetPath = vscode.Uri.joinPath(
-      this.context.extensionUri,
-      "media",
-      "reset.css"
-    );
-    const stylesPathMainPath = vscode.Uri.joinPath(
-      this.context.extensionUri,
-      "media",
-      "vscode.css"
-    );
-    const html = this.getPanelHtmlFileContent(this.context)
-      .replaceAll("{{cspSource}}", webview.cspSource)
-      .replaceAll("{{nonce}}", getNonce())
-      .replace("{{widgetCode}}", getWidgetSourceCode(this.widgetUri.toString()))
-      .replace(
-        "{{stylesResetUri}}",
-        webview.asWebviewUri(styleResetPath).toString()
-      )
-      .replace(
-        "{{stylesMainUri}}",
-        webview.asWebviewUri(stylesPathMainPath).toString()
-      )
-      .replace(
-        "{{scriptUri}}",
-        webview.asWebviewUri(scriptPathOnDisk).toString()
-      );
-    return html;
-  }
 }
+
+const setHtmlForWebview = (
+  context: vscode.ExtensionContext,
+  panel: vscode.WebviewPanel
+) => {
+  const webview = panel.webview;
+  const scriptPathOnDisk = vscode.Uri.joinPath(
+    context.extensionUri,
+    "media",
+    "main.js"
+  );
+  const styleResetPath = vscode.Uri.joinPath(
+    context.extensionUri,
+    "media",
+    "reset.css"
+  );
+  const stylesPathMainPath = vscode.Uri.joinPath(
+    context.extensionUri,
+    "media",
+    "vscode.css"
+  );
+  const html = getPanelHtmlFileContent(context)
+    .replaceAll("{{cspSource}}", webview.cspSource)
+    .replaceAll("{{nonce}}", getNonce())
+    // .replace("{{widgetCode}}", getWidgetSourceCode(widgetUri.toString()))
+    .replace(
+      "{{stylesResetUri}}",
+      webview.asWebviewUri(styleResetPath).toString()
+    )
+    .replace(
+      "{{stylesMainUri}}",
+      webview.asWebviewUri(stylesPathMainPath).toString()
+    )
+    .replace(
+      "{{scriptUri}}",
+      webview.asWebviewUri(scriptPathOnDisk).toString()
+    );
+    webview.html = html;
+};
+
+const getPanelHtmlFileContent = (context: vscode.ExtensionContext): string => {
+  const filePath: vscode.Uri = vscode.Uri.file(
+    path.join(context.extensionPath, "media", "panel.html")
+  );
+  return fs.readFileSync(filePath.fsPath, "utf8");
+};
 
 export function getWebviewOptions(
   extensionUri: vscode.Uri
@@ -218,20 +220,14 @@ export function getWebviewOptions(
   };
 }
 
-function getWidgetUrl(network: string) {
-  return network === "testnet"
-    ? "https://test.near.social/#/embed/test_alice.testnet/widget/remote-code?code="
-    : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
-}
-
 export function getWidgetSourceCode(widgetUriStr: string): string {
   const widget = getWidget(widgetUriStr);
   if (!widget || widget.code === null) {
     window.showErrorMessage(`Error loading preview: ${widgetUriStr}`);
     return `return <code>error</code>`;
+  } else {
+    return widget.code;
   }
-  const previewUrlPrefix = getWidgetUrl("mainnet");
-  return previewUrlPrefix + encodeURIComponent(widget.code);
   // return (
   //   previewUrlPrefix +
   //   encodeURIComponent(`return <h1>${new Date().toISOString()}</h1>`)

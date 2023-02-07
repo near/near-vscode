@@ -28,6 +28,20 @@
         "category": "NEAR.social",
         "enablement": "resourceScheme == near",
         "icon": "$(preview)"
+      },
+      {
+        "command": "near.reloadWidgetPreview",
+        "title": "Reload preview",
+        "category": "NEAR.social",
+        "enablement": "activeWebviewPanelId == 'WidgetPreview'",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "near.showWidgetPreviewSource",
+        "title": "Show source",
+        "category": "NEAR.social",
+        "enablement": "activeWebviewPanelId == 'WidgetPreview'",
+        "icon": "$(go-to-file)"
       }
     ],
     "resourceLabelFormatters": [
@@ -45,6 +59,16 @@
         {
           "when": "resourceScheme == near",
           "command": "near.showWidgetPreview",
+          "group": "navigation"
+        },
+        {
+          "command": "near.reloadWidgetPreview",
+          "when": "activeWebviewPanelId == 'WidgetPreview'",
+          "group": "navigation"
+        },
+        {
+          "command": "near.showWidgetPreviewSource",
+          "when": "activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         }
       ],

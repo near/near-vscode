@@ -8,12 +8,12 @@ function getWidgetUrl(network) {
     : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
 }
 
-function setIframeSrc(code) {
+function setIframeSrc(code, forceUpdate) {
   const iframeSrc = getWidgetUrl() + encodeURIComponent(code);
   const iframeEl = document.getElementById("code-widget");
   if (iframeEl) {
     const existingSrc = iframeEl.getAttribute('src');
-    if (existingSrc !== iframeSrc) {
+    if (forceUpdate || existingSrc !== iframeSrc) {
       console.log('updating code', iframeSrc.slice(0, 100));
       document.getElementById("code-widget")?.setAttribute("src", iframeSrc);
     } else {
@@ -30,7 +30,7 @@ function setIframeSrc(code) {
   console.log("Initial state", oldState);
 
   if (oldState?.code) {
-    setIframeSrc(oldState.code);
+    setIframeSrc(oldState.code, true);
   }
 
   // document.querySelector(".btn-reload")?.addEventListener("click", (e) => {
@@ -48,7 +48,7 @@ function setIframeSrc(code) {
       case "update-code":
         if (message.code) {
           vscode.setState({ code: message.code });
-          setIframeSrc(message.code);
+          setIframeSrc(message.code, message.forceUpdate);
         }
         break;
       // case "account-details": {

@@ -151,10 +151,10 @@ export class WidgetPreview {
     );
   }
 
-  public updateCode() {
+  public updateCode(forceUpdate = false) {
     const code = getWidgetSourceCode(this.widgetUri.toString());
     if (code) {
-      this.panel.webview.postMessage({ command: "update-code", code });
+      this.panel.webview.postMessage({ command: "update-code", code, forceUpdate });
     }
   }
 

@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { window } from "vscode";
-import { getWidget } from "./NearWidget";
+import {window} from "vscode";
+import {getWidget, waitForWidget} from "./NearWidget";
 
 export class WidgetPreviewFactory {
   private static instance: WidgetPreviewFactory;
@@ -22,34 +22,43 @@ export class WidgetPreviewFactory {
     vscode.window.registerWebviewPanelSerializer(WidgetPreview.viewType, {
       async deserializeWebviewPanel(
         webviewPanel: vscode.WebviewPanel,
-        state: any
+        state: { code: string; widgetUri: string }
       ) {
-        console.log(`Got state: ${state}`);
+        console.log(`Got state:`, state);
         // Reset the webview options so we use latest uri for `localResourceRoots`.
         webviewPanel.webview.options = getWebviewOptions(context.extensionUri);
+        if (state.widgetUri) {
+          const w = await waitForWidget(state.widgetUri);
+          if (w !== null) {
+            WidgetPreviewFactory.create(state.widgetUri, webviewPanel);
+          }
+        }
         // TODO: wait for the widget to exist in the registry, and createOrFocus() it
       },
     });
   }
 
-  static createOrFocus(widgetUri: vscode.Uri) {
-    const existing =
-      WidgetPreviewFactory.instance.previews[widgetUri.toString()];
-    if (existing) {
-      existing.panel.reveal(undefined, true);
-      existing.updateCode();
-      return existing;
-    }
+  static create(widgetUriStr: string, panel?: vscode.WebviewPanel) {
     const newPreview = WidgetPreview.create(
       WidgetPreviewFactory.instance.context,
-      widgetUri,
-      () => WidgetPreviewFactory.disposePreview(widgetUri)
+      widgetUriStr,
+      () => WidgetPreviewFactory.disposePreview(widgetUriStr),
+      panel
     );
-    WidgetPreviewFactory.instance.previews[widgetUri.toString()] = newPreview;
+    WidgetPreviewFactory.instance.previews[widgetUriStr] = newPreview;
   }
 
-  private static disposePreview(widgetUri: vscode.Uri) {
-    delete WidgetPreviewFactory.instance.previews[widgetUri.toString()];
+  static createOrFocus(widgetUriStr: string) {
+    const existing = WidgetPreviewFactory.instance.previews[widgetUriStr];
+    if (existing) {
+      existing.panel.reveal(undefined, true);
+    } else {
+      WidgetPreviewFactory.create(widgetUriStr);
+    }
+  }
+
+  private static disposePreview(widgetUriStr: string) {
+    delete WidgetPreviewFactory.instance.previews[widgetUriStr];
   }
 }
 
@@ -58,37 +67,40 @@ export class WidgetPreview {
 
   readonly panel: vscode.WebviewPanel;
   readonly context: vscode.ExtensionContext;
-  readonly widgetUri: vscode.Uri;
+  readonly widgetUriStr: string;
   private _disposables: vscode.Disposable[] = [];
 
   public static create(
     extensionContext: vscode.ExtensionContext,
-    widgetUri: vscode.Uri,
-    onDispose: () => void
+    widgetUristr: string,
+    onDispose: () => void,
+    panel?: vscode.WebviewPanel
   ) {
-    const viewColumn = vscode.ViewColumn.Beside;
-
-    const panel = vscode.window.createWebviewPanel(
-      WidgetPreview.viewType,
-      "",
-      {
-        viewColumn,
-        preserveFocus: true,
-      },
-      getWebviewOptions(extensionContext.extensionUri)
-    );
-    const isDark = [
-      vscode.ColorThemeKind.Dark,
-      vscode.ColorThemeKind.Dark,
-    ].includes(vscode.window.activeColorTheme.kind);
-    panel.iconPath = vscode.Uri.joinPath(
-      extensionContext.extensionUri,
-      "media",
-      isDark ? "near-dark.svg" : "near-light.svg"
-    );
+    let newPanel = panel;
+    if (!newPanel) {
+      const viewColumn = vscode.ViewColumn.Beside;
+      newPanel = vscode.window.createWebviewPanel(
+        WidgetPreview.viewType,
+        "",
+        {
+          viewColumn,
+          preserveFocus: true,
+        },
+        getWebviewOptions(extensionContext.extensionUri)
+      );
+      const isDark = [
+        vscode.ColorThemeKind.Dark,
+        vscode.ColorThemeKind.Dark,
+      ].includes(vscode.window.activeColorTheme.kind);
+      newPanel.iconPath = vscode.Uri.joinPath(
+        extensionContext.extensionUri,
+        "media",
+        isDark ? "near-dark.svg" : "near-light.svg"
+      );
+    }
     const newPreview = new WidgetPreview(
-      widgetUri,
-      panel,
+      widgetUristr,
+      newPanel,
       extensionContext,
       onDispose
     );
@@ -96,17 +108,16 @@ export class WidgetPreview {
   }
 
   private constructor(
-    widgetUri: vscode.Uri,
+    widgetUriStr: string,
     panel: vscode.WebviewPanel,
     context: vscode.ExtensionContext,
     onDispose: () => void
   ) {
-    this.widgetUri = widgetUri;
+    this.widgetUriStr = widgetUriStr;
     this.panel = panel;
     this.context = context;
 
-    // Set the webview's initial html content
-    this.panel.title = `Preview ${this.widgetUri.toString()}`;
+    this.panel.title = `Preview ${this.widgetUriStr.toString()}`;
     setHtmlForWebview(context, panel);
 
     // Listen for when the panel is disposed
@@ -152,9 +163,16 @@ export class WidgetPreview {
   }
 
   public updateCode(forceUpdate = false) {
-    const code = getWidgetSourceCode(this.widgetUri.toString());
-    if (code) {
-      this.panel.webview.postMessage({ command: "update-code", code, forceUpdate });
+    if (this.panel.visible) {
+      const code = getWidgetSourceCode(this.widgetUriStr.toString());
+      if (code) {
+        this.panel.webview.postMessage({
+          command: "update-code",
+          code,
+          forceUpdate,
+          widgetUri: this.widgetUriStr.toString(),
+        });
+      }
     }
   }
 
@@ -193,7 +211,6 @@ const setHtmlForWebview = (
   const html = getPanelHtmlFileContent(context)
     .replaceAll("{{cspSource}}", webview.cspSource)
     .replaceAll("{{nonce}}", getNonce())
-    // .replace("{{widgetCode}}", getWidgetSourceCode(widgetUri.toString()))
     .replace(
       "{{stylesResetUri}}",
       webview.asWebviewUri(styleResetPath).toString()

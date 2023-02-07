@@ -1,7 +1,3 @@
-// @ts-nocheck
-// This script will be run within the webview itself
-// It cannot access the main VS Code APIs directly.
-
 function getWidgetUrl(network) {
   return network === "testnet"
     ? "https://test.near.social/#/embed/test_alice.testnet/widget/remote-code?code="
@@ -20,10 +16,10 @@ function setIframeSrc(code, forceUpdate) {
       console.log('NOT updating code', existingSrc.slice(0, 100));
     }
   }
-  
-};
+}
 
 (function () {
+  // @ts-ignore
   const vscode = acquireVsCodeApi();
   const oldState = vscode.getState();
 
@@ -33,12 +29,9 @@ function setIframeSrc(code, forceUpdate) {
     setIframeSrc(oldState.code, true);
   }
 
-  // document.querySelector(".btn-reload")?.addEventListener("click", (e) => {
-  //   requestUpdateCode();
-  // });
-
   const requestUpdateCode = () => {
-    vscode.postMessage({ command: "request-update-code" });
+    const state = vscode.getState();
+    vscode.postMessage({ command: "request-update-code", widgetUri: state?.widgetUri });
   };
 
   // Handle messages sent from the extension to the webview
@@ -47,36 +40,11 @@ function setIframeSrc(code, forceUpdate) {
     switch (message.command) {
       case "update-code":
         if (message.code) {
-          vscode.setState({ code: message.code });
+          vscode.setState({ code: message.code, widgetUri: message.widgetUri });
           setIframeSrc(message.code, message.forceUpdate);
         }
         break;
-      // case "account-details": {
-      //   setAccountDetails(message.network, message.accountId);
-      //   break;
-      // }
     }
   });
   requestUpdateCode();
 })();
-
-// /**
-//  * @param {string} accountId
-//  * @param {string} network
-//  */
-// function setAccountDetails(network, accountId) {
-//   console.log("setAccountDetails", accountId);
-//   const accountControl = document.getElementById("account-details");
-//   const loginControl = document.getElementById("login");
-
-//   let widgetUrl = network === "testnet" ? "https://test.near.social/#/embed/test_alice.testnet/widget/Profile.InlineBlock" : "https://near.social/#/embed/mob.near/widget/Profile.InlineBlock";
-
-//   if (accountId) {
-//     document.getElementById("account-details-widget")?.setAttribute("src", `${widgetUrl}?accountId=${accountId}`);
-//     accountControl.classList.remove("hidden");
-//     loginControl.classList.add("hidden");
-//   } else {
-//     accountControl.classList.add("hidden");
-//     loginControl.classList.remove("hidden");
-//   }
-// }

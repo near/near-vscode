@@ -63,12 +63,12 @@
         },
         {
           "command": "near.reloadWidgetPreview",
-          "when": "activeWebviewPanelId == 'WidgetPreview'",
+          "when": "fasle && activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         },
         {
           "command": "near.showWidgetPreviewSource",
-          "when": "activeWebviewPanelId == 'WidgetPreview'",
+          "when": "fasle && activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         }
       ],

@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
-import { window } from "vscode";
-import { NEAR_FS_SCHEME } from "./util";
-import { openWidgetsFromAccount } from "./near-openWidgetsFromAccount";
-import { NearFS } from "./NearFS";
-import { getWidget, getWidgetByFsUri } from "./NearWidget";
-import { WidgetPreviewFactory } from "./WidgetPreview";
+import {window} from "vscode";
+import {NEAR_FS_SCHEME} from "./util";
+import {openWidgetsFromAccount} from "./near-openWidgetsFromAccount";
+import {NearFS} from "./NearFS";
+import {getWidget} from "./NearWidget";
+import {WidgetPreviewFactory} from "./WidgetPreview";
 
 export function activate(context: vscode.ExtensionContext) {
   const widgetsFS = new NearFS();
@@ -23,8 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
       const uri = window.activeTextEditor?.document?.uri.toString() || null;
       if (uri !== null) {
         const widget = getWidget(uri);
-        if (widget) {
-          WidgetPreviewFactory.createOrFocus(widget.uri);
+        if (widget !== null) {
+          WidgetPreviewFactory.createOrFocus(widget.uri.toString());
         } else {
           error = true;
         }
@@ -33,23 +33,12 @@ export function activate(context: vscode.ExtensionContext) {
       }
       if (error) {
         vscode.window.showInformationMessage(
-          "Error showing preview. Please report this."
+          "Error showing preview."
         );
       }
     })
   );
 
-  // if (vscode.window.registerWebviewPanelSerializer) {
-  //   // Make sure we register a serializer in activation event
-  //   vscode.window.registerWebviewPanelSerializer(NearSocialViewer.viewType, {
-  //     async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-  //       console.log(`Got state: ${state}`);
-  //       // Reset the webview options so we use latest uri for `localResourceRoots`.
-  //       webviewPanel.webview.options = getWebviewOptions(context.extensionUri);
-  //       NearSocialViewer.revive(webviewPanel, context);
-  //     },
-  //   });
-  // }
   context.subscriptions.push(
     vscode.commands.registerCommand("near.openWidgetsFromAccount", () =>
       openWidgetsFromAccount(context)

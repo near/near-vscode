@@ -27,7 +27,7 @@ export class WidgetPreviewFactory {
         console.log(`Got state: ${state}`);
         // Reset the webview options so we use latest uri for `localResourceRoots`.
         webviewPanel.webview.options = getWebviewOptions(context.extensionUri);
-        // WidgetPreview.revive(webviewPanel, context);
+        // TODO: wait for the widget to exist in the registry, and createOrFocus() it
       },
     });
   }
@@ -37,6 +37,7 @@ export class WidgetPreviewFactory {
       WidgetPreviewFactory.instance.previews[widgetUri.toString()];
     if (existing) {
       existing.panel.reveal(undefined, true);
+      existing.updateCode();
       return existing;
     }
     const newPreview = WidgetPreview.create(
@@ -107,7 +108,7 @@ export class WidgetPreview {
     // Set the webview's initial html content
     this.panel.title = `Preview ${this.widgetUri.toString()}`;
     setHtmlForWebview(context, panel);
-    
+
     // Listen for when the panel is disposed
     // This happens when the user closes the panel or when the panel is closed programmatically
     this.panel.onDidDispose(
@@ -122,8 +123,15 @@ export class WidgetPreview {
     // Update the content based on view changes
     this.panel.onDidChangeViewState(
       (e) => {
-        console.log("onDidChangeViewState", {visible: e.webviewPanel.visible, active: e.webviewPanel.active, viewColumn: e.webviewPanel.viewColumn});
-        this.updateCode();
+        const visible = e.webviewPanel.visible;
+        console.log("onDidChangeViewState", {
+          visible: e.webviewPanel.visible,
+          active: e.webviewPanel.active,
+          viewColumn: e.webviewPanel.viewColumn,
+        });
+        if (visible) {
+          this.updateCode();
+        }
       },
       null,
       this._disposables
@@ -198,7 +206,7 @@ const setHtmlForWebview = (
       "{{scriptUri}}",
       webview.asWebviewUri(scriptPathOnDisk).toString()
     );
-    webview.html = html;
+  webview.html = html;
 };
 
 const getPanelHtmlFileContent = (context: vscode.ExtensionContext): string => {

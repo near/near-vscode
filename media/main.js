@@ -8,6 +8,21 @@ function getWidgetUrl(network) {
     : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
 }
 
+function setIframeSrc(code) {
+  const iframeSrc = getWidgetUrl() + encodeURIComponent(code);
+  const iframeEl = document.getElementById("code-widget");
+  if (iframeEl) {
+    const existingSrc = iframeEl.getAttribute('src');
+    if (existingSrc !== iframeSrc) {
+      console.log('updating code', iframeSrc.slice(0, 100));
+      document.getElementById("code-widget")?.setAttribute("src", iframeSrc);
+    } else {
+      console.log('NOT updating code', existingSrc.slice(0, 100));
+    }
+  }
+  
+};
+
 (function () {
   const vscode = acquireVsCodeApi();
   const oldState = vscode.getState();
@@ -18,14 +33,9 @@ function getWidgetUrl(network) {
     setIframeSrc(oldState.code);
   }
 
-  document.querySelector(".btn-reload")?.addEventListener("click", (e) => {
-    requestUpdateCode();
-  });
-
-  const setIframeSrc = (content) => {
-    const iframeSrc = getWidgetUrl() + encodeURIComponent(content);
-    document.getElementById("code-widget")?.setAttribute("src", iframeSrc);
-  };
+  // document.querySelector(".btn-reload")?.addEventListener("click", (e) => {
+  //   requestUpdateCode();
+  // });
 
   const requestUpdateCode = () => {
     vscode.postMessage({ command: "request-update-code" });

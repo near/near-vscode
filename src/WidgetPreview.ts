@@ -32,10 +32,11 @@ export class WidgetPreviewFactory {
     });
   }
 
-  static getOrCreate(widgetUri: vscode.Uri) {
+  static createOrFocus(widgetUri: vscode.Uri) {
     const existing =
       WidgetPreviewFactory.instance.previews[widgetUri.toString()];
     if (existing) {
+      existing.panel.reveal(undefined, true);
       return existing;
     }
     const newPreview = WidgetPreview.create(
@@ -44,7 +45,6 @@ export class WidgetPreviewFactory {
       () => WidgetPreviewFactory.disposePreview(widgetUri),
     );
     WidgetPreviewFactory.instance.previews[widgetUri.toString()] = newPreview;
-    return newPreview;
   }
 
   private static disposePreview(widgetUri: vscode.Uri) {
@@ -65,12 +65,15 @@ export class WidgetPreview {
     widgetUri: vscode.Uri,
     onDispose: () => void,
   ) {
-    const column = vscode.ViewColumn.Beside;
+    const viewColumn = vscode.ViewColumn.Beside;
 
     const panel = vscode.window.createWebviewPanel(
       WidgetPreview.viewType,
       '',
-      column,
+      {
+        viewColumn,
+        preserveFocus: true,
+      },
       getWebviewOptions(extensionContext.extensionUri)
     );
     const isDark = [vscode.ColorThemeKind.Dark, vscode.ColorThemeKind.Dark].includes(vscode.window.activeColorTheme.kind);

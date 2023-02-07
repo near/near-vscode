@@ -24,7 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (uri !== null) {
         const widget = getWidget(uri);
         if (widget) {
-          WidgetPreviewFactory.getOrCreate(widget.uri);
+          WidgetPreviewFactory.createOrFocus(widget.uri);
         } else {
           error = true;
         }

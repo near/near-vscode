@@ -20,9 +20,9 @@
     document.getElementById("code-widget")?.setAttribute("src", content);
   };
 
-  const requestUpdateCode = () => {
-    vscode.postMessage({ command: "request-update-code" });
-  };
+  // const requestUpdateCode = () => {
+  //   vscode.postMessage({ command: "request-update-code" });
+  // };
 
   // Handle messages sent from the extension to the webview
   window.addEventListener("message", (event) => {

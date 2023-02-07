@@ -23,18 +23,34 @@
         "category": "NEAR.social"
       },
       {
-        "command": "near.showPreviewPanel",
-        "title": "Show Widget preview panel",
-        "category": "NEAR.social"
+        "command": "near.showWidgetPreview",
+        "title": "Show Widget preview",
+        "category": "NEAR.social",
+        "enablement": "resourceScheme == near",
+        "icon": "$(preview)"
+      }
+    ],
+    "resourceLabelFormatters": [
+      {
+        "scheme": "near",
+        "formatting": {
+          "label": "${path}",
+          "separator": "/",
+          "workspaceSuffix": "NEAR"
+        }
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "when": "resourceScheme == near",
+          "command": "near.showWidgetPreview",
+          "group": "navigation"
+        }
+      ],
       "commandPalette": [
         {
           "command": "near.openWidgetsFromAccount"
-        },
-        {
-          "command": "near.showPreviewPanel"
         }
       ]
     }

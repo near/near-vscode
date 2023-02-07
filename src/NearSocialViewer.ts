@@ -62,24 +62,8 @@ export class NearSocialViewer {
     this._panel.webview.onDidReceiveMessage(
       (message) => {
         switch (message.command) {
-          case "alert":
-            alert(message.text);
-            break;
-          case "publish":
-            // this.Publish(message.name, message.tag);
-            return;
-
-          case "login":
-            // this.NearSignin(NETWORK, getContractId(NETWORK));
-            return;
-
-          case "confirm-login":
-            // this.CheckPublicKey(NETWORK, undefined);
-            return;
-
-          case "sign-out":
-            // this.DeleteKey();
-            // setTimeout(() => this.SendAccountDetails(), 500);
+          case "request-update-code":
+            this.updateCode(getWidgetWithCode());
             return;
         }
       },

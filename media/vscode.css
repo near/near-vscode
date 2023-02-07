@@ -1,12 +1,21 @@
 body {
   padding: 0;
   margin: 0;
+  background-color: white;
 }
 
+.header {
+  position: fixed;
+  background-color: aqua;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+}
 .code-iframe-wrap {
   padding: 10px;
   position: fixed;
-  top: 0;
+  top: 20px;
   left: 0;
   right: 0;
   bottom: 0;

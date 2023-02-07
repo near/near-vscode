@@ -1,11 +1,8 @@
 import * as _ from 'lodash';
 import * as vscode from "vscode";
-import { providers } from "near-api-js";
 import { NearWidget, WidgetFile } from "./NearWidget";
 import { callRpc } from "./loader";
 import { SOCIAL_CONTRACT_ACCOUNT } from "./config";
-
-const provider = new providers.JsonRpcProvider({ url: "https://rpc.near.org" });
 
 export const accountsCache: Record<AccountId, NearAccount> = {};
 
@@ -77,9 +74,13 @@ export class NearAccount {
     const args = `{"keys":["${this.accountId}/widget/**"]}`;
     const argsBase64 = Buffer.from(args).toString("base64");
     const rawResult: any = await callRpc(`Account ${this.accountId}`, `get-${SOCIAL_CONTRACT_ACCOUNT}-${args}`, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       request_type: "call_function",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       account_id: SOCIAL_CONTRACT_ACCOUNT,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       method_name: "get",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       args_base64: argsBase64,
       finality: "optimistic",
     });
@@ -89,7 +90,7 @@ export class NearAccount {
       rawWidgets
     ).map(([name, data]: [string, any]) => {
       const code = typeof data === "string" ? data : typeof data === 'object' && typeof data[""] === 'string' ? data[""] : null;
-      const newWidget = NearWidget.create(name, code);
+      const newWidget = NearWidget.create(this.accountId, name, code);
       newWidget.chainData = Buffer.from(rawResult.result).toString();
       return [name, newWidget];
     });

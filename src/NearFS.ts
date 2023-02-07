@@ -99,8 +99,8 @@ export class NearFS implements vscode.FileSystemProvider {
       const accountDir = this.root.accountDirs.get(accountName);
       if (accountDir) {
         const widgetFiles = await accountDir.account.getAllWidgetFiles();
-        for (const w of widgetFiles) {
-          result.push([w.name, w.type]);
+        for (const wFile of widgetFiles) {
+          result.push([wFile.widget.fsName, wFile.type]);
         }
       }
     }
@@ -180,7 +180,7 @@ export class NearFS implements vscode.FileSystemProvider {
       }
       return accountDir;
     }
-    const widgetName = NearWidget.nameFromFsName(widgetFsName as WidgetFSName);
+    const widgetName = NearWidget.fsNameToName(widgetFsName as WidgetFSName);
     const widgetFileEntry = await accountDir?.account.getOneWidgetFile(
       widgetName
     );

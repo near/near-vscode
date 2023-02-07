@@ -10,13 +10,17 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:near.openWidgetsFromAccount",
     "onFileSystem:near",
     "onWebviewPanel:viewType"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "near.login",
+        "title": "Login",
+        "category": "NEAR.social"
+      },
       {
         "command": "near.openWidgetsFromAccount",
         "title": "Open Account",
@@ -42,7 +46,7 @@
         "category": "NEAR.social",
         "enablement": "activeWebviewPanelId == 'WidgetPreview'",
         "icon": "$(go-to-file)"
-      }
+      }  
     ],
     "resourceLabelFormatters": [
       {
@@ -77,7 +81,15 @@
           "command": "near.openWidgetsFromAccount"
         }
       ]
-    }
+    },
+    "viewsWelcome": [
+      {
+        "view": "explorer",
+        "contents": "To start, please login into your NEAR account: [Login With NEAR](command:near.login)",
+        "when": "workbenchState == empty"
+      }
+    ]
+
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",

@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import {window} from "vscode";
-import {getWidget, waitForWidget} from "./NearWidget";
+import { window } from "vscode";
+import { getWidget, waitForWidget } from "./NearWidget";
 
 export class WidgetPreviewFactory {
   private static instance: WidgetPreviewFactory;

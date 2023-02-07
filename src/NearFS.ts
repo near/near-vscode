@@ -2,7 +2,7 @@ import { rest } from "lodash";
 import * as vscode from "vscode";
 import {
   FS_EXT,
-  isValidAccountId,
+  //isValidAccountId,
   isValidWidgetFsPath,
   NEAR_FS_SCHEME,
 } from "./util";
@@ -24,11 +24,11 @@ export const isValidNearFsUri = (uri: vscode.Uri): boolean => {
   if (parts.length === 1) {
     return true;
   }
-  const firstPartIsAccountId = isValidAccountId(firstPart);
-  if (!firstPartIsAccountId) {
-    // console.log('$$ not valid uri', uri);
-    return false;
-  }
+  // const firstPartIsAccountId = isValidAccountId(firstPart);
+  // if (!firstPartIsAccountId) {
+  //   // console.log('$$ not valid uri', uri);
+  //   return false;
+  // }
   if (parts.length === 2) {
     // uri is only accountId
     return true;

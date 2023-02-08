@@ -1,8 +1,19 @@
 {
-  "name": "vsnear1",
-  "displayName": "vsnear1",
-  "description": "",
-  "version": "0.0.1",
+  "name": "near",
+  "displayName": "NEAR IDE",
+  "description": "VSCode extension for NEAR",
+  "version": "0.1.0",
+  "publisher": "maxistyping",
+  "icon": "media/near-dark.png",
+  "homepage": "https://github.com/maxhr/near-vscode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxhr/near-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/maxhr/near-vscode/issues",
+    "email": "max@maxistyping.com"
+  },
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -23,7 +34,7 @@
       },
       {
         "command": "near.openWidgetsFromAccount",
-        "title": "Open Account",
+        "title": "View account in workspace",
         "category": "NEAR.social"
       },
       {
@@ -36,12 +47,12 @@
       {
         "command": "near.reloadWidgetPreview",
         "title": "Reload preview",
-        "category": "NEAR.social",
         "enablement": "activeWebviewPanelId == 'WidgetPreview'",
+        "category": "NEAR.social",
         "icon": "$(refresh)"
       },
       {
-        "command": "near.showWidgetPreviewSource",
+        "command": "near.focusActivePreviewSource",
         "title": "Show source",
         "category": "NEAR.social",
         "enablement": "activeWebviewPanelId == 'WidgetPreview'",
@@ -58,6 +69,23 @@
         }
       }
     ],
+    "viewsWelcome": [
+      {
+        "view": "explorer",
+        "contents": "You can inspect widgets on NEAR.social.",
+        "when": "workbenchState == empty"
+      },
+      {
+        "view": "explorer",
+        "contents": "[Login to NEAR.social with your account](command:near.openWidgetsFromAccount)",
+        "when": "false && workbenchState == empty"
+      },
+      {
+        "view": "explorer",
+        "contents": "[View NEAR.social account](command:near.openWidgetsFromAccount)",
+        "when": "workbenchState == empty"
+      }
+    ],
     "menus": {
       "editor/title": [
         {
@@ -67,12 +95,12 @@
         },
         {
           "command": "near.reloadWidgetPreview",
-          "when": "fasle && activeWebviewPanelId == 'WidgetPreview'",
+          "when": "activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         },
         {
-          "command": "near.showWidgetPreviewSource",
-          "when": "fasle && activeWebviewPanelId == 'WidgetPreview'",
+          "command": "near.focusActivePreviewSource",
+          "when": "activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         }
       ],

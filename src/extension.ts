@@ -39,6 +39,17 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.reloadWidgetPreview",() => {
+      WidgetPreviewFactory.reloadActivePreview();
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.focusActivePreviewSource",() => {
+      WidgetPreviewFactory.focusActivePreviewSource();
+    })
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("near.openWidgetsFromAccount", () =>

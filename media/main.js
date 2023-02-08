@@ -10,8 +10,11 @@ function setIframeSrc(code, forceUpdate) {
   if (iframeEl) {
     const existingSrc = iframeEl.getAttribute('src');
     if (forceUpdate || existingSrc !== iframeSrc) {
-      console.log('updating code', iframeSrc.slice(0, 100));
-      document.getElementById("code-widget")?.setAttribute("src", iframeSrc);
+      console.log('updating code', iframeSrc.slice(0, 100), "...truncated");
+      document.getElementById("code-widget")?.setAttribute("src", "");
+      setTimeout(() => {
+        document.getElementById("code-widget")?.setAttribute("src", iframeSrc);
+      }, 50);
     } else {
       console.log('NOT updating code', existingSrc.slice(0, 100));
     }

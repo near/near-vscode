@@ -3,7 +3,7 @@
   "displayName": "NEAR IDE",
   "description": "VSCode extension for NEAR",
   "version": "0.1.0",
-  "publisher": "github.com/maxhr",
+  "publisher": "maxistyping",
   "icon": "assets/near-dark.png",
   "homepage": "https://github.com/maxhr/near-vscode",
   "repository": {

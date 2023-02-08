@@ -62,26 +62,29 @@ export class WidgetPreviewFactory {
     for (const p of previews) {
       if (p.panel.active) {
         p.updateCode(true);
-        break;
+        return;
       }
     }
-    vscode.window.showErrorMessage('Error reloading widget.');
+    vscode.window.showErrorMessage("Error reloading widget.");
   }
 
   static async focusActivePreviewSource() {
     const previews = Object.values(WidgetPreviewFactory.instance.previews);
+    let isError = false;
     for (const p of previews) {
       if (p.panel.active) {
         const uri = vscode.Uri.parse(p.widgetUriStr);
         try {
           const doc = await vscode.workspace.openTextDocument(uri);
           vscode.window.showTextDocument(doc);
-        } catch(e) {
-          vscode.window.showErrorMessage('Error opening source file.');
+        } catch (e) {
+          isError = true;
         }
-        
         break;
       }
+    }
+    if (isError) {
+      vscode.window.showErrorMessage("Error opening source file.");
     }
   }
 

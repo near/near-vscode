@@ -1,13 +1,11 @@
-import { rest } from "lodash";
 import * as vscode from "vscode";
-import {
-  FS_EXT,
-  isValidAccountId,
-  isValidWidgetFsPath,
-  NEAR_FS_SCHEME,
-} from "./util";
 import { NearAccount, NearAccountDir } from "./NearAccount";
 import { NearWidget, WidgetFile } from "./NearWidget";
+import {
+  isValidAccountId,
+  isValidWidgetFsPath,
+  NEAR_FS_SCHEME
+} from "./util";
 
 const FS_FILTER = [".vscode", ".git"];
 export const isValidNearFsUri = (uri: vscode.Uri): boolean => {

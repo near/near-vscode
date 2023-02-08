@@ -126,7 +126,7 @@ export class WidgetPreview {
       newPanel.iconPath = vscode.Uri.joinPath(
         extensionContext.extensionUri,
         "media",
-        isDark ? "near-dark.svg" : "near-light.svg"
+        isDark ? "near-dark.png" : "near-light.png"
       );
     }
     const newPreview = new WidgetPreview(

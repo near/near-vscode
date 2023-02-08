@@ -57,6 +57,37 @@ export class WidgetPreviewFactory {
     }
   }
 
+  static reloadActivePreview() {
+    const previews = Object.values(WidgetPreviewFactory.instance.previews);
+    for (const p of previews) {
+      if (p.panel.active) {
+        p.updateCode(true);
+        return;
+      }
+    }
+    vscode.window.showErrorMessage("Error reloading widget.");
+  }
+
+  static async focusActivePreviewSource() {
+    const previews = Object.values(WidgetPreviewFactory.instance.previews);
+    let isError = false;
+    for (const p of previews) {
+      if (p.panel.active) {
+        const uri = vscode.Uri.parse(p.widgetUriStr);
+        try {
+          const doc = await vscode.workspace.openTextDocument(uri);
+          vscode.window.showTextDocument(doc);
+        } catch (e) {
+          isError = true;
+        }
+        break;
+      }
+    }
+    if (isError) {
+      vscode.window.showErrorMessage("Error opening source file.");
+    }
+  }
+
   private static disposePreview(widgetUriStr: string) {
     delete WidgetPreviewFactory.instance.previews[widgetUriStr];
   }
@@ -95,7 +126,7 @@ export class WidgetPreview {
       newPanel.iconPath = vscode.Uri.joinPath(
         extensionContext.extensionUri,
         "media",
-        isDark ? "near-dark.svg" : "near-light.svg"
+        isDark ? "near-dark.png" : "near-light.png"
       );
     }
     const newPreview = new WidgetPreview(

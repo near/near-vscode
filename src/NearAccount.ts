@@ -73,7 +73,7 @@ export class NearAccount {
   async reloadWidgets() {
     const args = `{"keys":["${this.accountId}/widget/**"]}`;
     const argsBase64 = Buffer.from(args).toString("base64");
-    const rawResult: any = await callRpc(`Account ${this.accountId}`, `get-${SOCIAL_CONTRACT_ACCOUNT}-${args}`, {
+    const rawResult: any = await callRpc(this.accountId, `get-${SOCIAL_CONTRACT_ACCOUNT}-${args}`, {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       request_type: "call_function",
       // eslint-disable-next-line @typescript-eslint/naming-convention

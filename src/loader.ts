@@ -1,11 +1,11 @@
 import { providers } from "near-api-js";
-import { window } from "vscode";
+import { ProgressLocation, window } from "vscode";
 
 const provider = new providers.JsonRpcProvider({ url: "https://rpc.near.org" });
 const callsCache: any = {};
 
 export const callRpc = async (
-  title: string,
+  accountId: string,
   loadKey: string,
   providerQuery: any
 ): Promise<any> => {
@@ -15,9 +15,26 @@ export const callRpc = async (
   console.log("%% calling rpc", loadKey);
   const callPromise = provider.query(providerQuery);
   callsCache[loadKey] = callPromise;
-  callPromise.catch(e => {
-    const result = window.showErrorMessage(`Error loading: ${title}`);
+  return new Promise((resolve, reject) => {
+    window.withProgress(
+      {
+        location: ProgressLocation.Window,
+        title: `NEAR: updating account ${accountId}`,
+        cancellable: false,
+      },
+      async (progress, token) => {
+        try {
+          const result = await callsCache[loadKey];
+          resolve(result);
+          console.log("** finished rpc", loadKey);
+        } catch (e) {
+          window.showErrorMessage(`Error loading: ${accountId}`);
+          console.log("&& error rpc", loadKey);
+          reject(e);
+        } finally {
+          callsCache[loadKey] = null;
+        }
+      }
+    );
   });
-  callPromise.finally(() => (callsCache[loadKey] = null));
-  return callsCache[loadKey];
 };

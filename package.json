@@ -4,7 +4,7 @@
   "description": "VSCode extension for NEAR",
   "version": "0.1.0",
   "publisher": "maxistyping",
-  "icon": "assets/near-dark.png",
+  "icon": "media/near-dark.png",
   "homepage": "https://github.com/maxhr/near-vscode",
   "repository": {
     "type": "git",

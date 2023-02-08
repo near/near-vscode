@@ -32,12 +32,12 @@
       {
         "command": "near.reloadWidgetPreview",
         "title": "Reload preview",
-        "category": "NEAR.social",
         "enablement": "activeWebviewPanelId == 'WidgetPreview'",
+        "category": "NEAR.social",
         "icon": "$(refresh)"
       },
       {
-        "command": "near.showWidgetPreviewSource",
+        "command": "near.focusActivePreviewSource",
         "title": "Show source",
         "category": "NEAR.social",
         "enablement": "activeWebviewPanelId == 'WidgetPreview'",
@@ -54,6 +54,23 @@
         }
       }
     ],
+    "viewsWelcome": [
+      {
+        "view": "explorer",
+        "contents": "You can inspect widgets on NEAR.social.",
+        "when": "workbenchState == empty"
+      },
+      {
+        "view": "explorer",
+        "contents": "[Login to NEAR.social with your account](command:near.openWidgetsFromAccount)",
+        "when": "false && workbenchState == empty"
+      },
+      {
+        "view": "explorer",
+        "contents": "[View NEAR.social account](command:near.openWidgetsFromAccount)",
+        "when": "workbenchState == empty"
+      }
+    ],
     "menus": {
       "editor/title": [
         {
@@ -63,12 +80,12 @@
         },
         {
           "command": "near.reloadWidgetPreview",
-          "when": "fasle && activeWebviewPanelId == 'WidgetPreview'",
+          "when": "activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         },
         {
-          "command": "near.showWidgetPreviewSource",
-          "when": "fasle && activeWebviewPanelId == 'WidgetPreview'",
+          "command": "near.focusActivePreviewSource",
+          "when": "activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         }
       ],

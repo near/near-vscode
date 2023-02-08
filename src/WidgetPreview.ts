@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import {window} from "vscode";
-import {getWidget, waitForWidget} from "./NearWidget";
+import { window } from "vscode";
+import { getWidget, waitForWidget } from "./NearWidget";
 
 export class WidgetPreviewFactory {
   private static instance: WidgetPreviewFactory;
@@ -54,6 +54,34 @@ export class WidgetPreviewFactory {
       existing.panel.reveal(undefined, true);
     } else {
       WidgetPreviewFactory.create(widgetUriStr);
+    }
+  }
+
+  static reloadActivePreview() {
+    const previews = Object.values(WidgetPreviewFactory.instance.previews);
+    for (const p of previews) {
+      if (p.panel.active) {
+        p.updateCode(true);
+        break;
+      }
+    }
+    vscode.window.showErrorMessage('Error reloading widget.');
+  }
+
+  static async focusActivePreviewSource() {
+    const previews = Object.values(WidgetPreviewFactory.instance.previews);
+    for (const p of previews) {
+      if (p.panel.active) {
+        const uri = vscode.Uri.parse(p.widgetUriStr);
+        try {
+          const doc = await vscode.workspace.openTextDocument(uri);
+          vscode.window.showTextDocument(doc);
+        } catch(e) {
+          vscode.window.showErrorMessage('Error opening source file.');
+        }
+        
+        break;
+      }
     }
   }
 

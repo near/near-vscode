@@ -1,27 +1,30 @@
 <!DOCTYPE html>
-	<html lang="en" style="padding: 0; margin: 0;">
-	<head>
-		<meta charset="UTF-8">
+<html lang="en" style="padding: 0; margin: 0;">
 
-		<!--
-			Use a content security policy to only allow loading images from https or from our extension directory,
-			and only allow scripts that have a specific nonce.					
-		-->
-		
-		<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}}; img-src {{cspSource}} https:; script-src 'nonce-{{nonce}}';"> -->
-		
+<head>
+	<meta charset="UTF-8">
 
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!--
+		Use a content security policy to only allow loading images from https or from our extension directory,
+		and only allow scripts that have a specific nonce.
+	-->
 
-		<link href="{{stylesResetUri}}" rel="stylesheet">
-		<link href="{{stylesMainUri}}" rel="stylesheet">
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}}; img-src {{cspSource}} https:; script-src 'nonce-{{nonce}}';"> -->
 
-		<title>NEAR Widget Preview</title>
-	</head>
-	<body>		
-		<div class="code-iframe-wrap">
-			<iframe id="code-widget" src="" class="code-iframe"></iframe>
-		</div>
-		<script nonce="{{nonce}}" src="{{scriptUri}}"></script>
-	</body>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link href="{{stylesResetUri}}" rel="stylesheet">
+	<link href="{{stylesMainUri}}" rel="stylesheet">
+
+	<title>NEAR Widget Preview</title>
+</head>
+
+<body>
+	<div class="code-iframe-wrap">
+		<iframe id="code-widget" src="" class="code-iframe"></iframe>
+	</div>
+	<script nonce="{{nonce}}" src="{{scriptUri}}"></script>
+</body>
+
 </html>

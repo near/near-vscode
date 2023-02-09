@@ -1,84 +1,60 @@
 import * as vscode from "vscode";
-import { window } from "vscode";
-import { NEAR_FS_SCHEME } from "./util";
-import { openWidgetsFromAccount } from "./near-openWidgetsFromAccount";
-import { loginAccount } from "./near-loginAccount";
-import { NearFS } from "./NearFS";
-import { getWidget } from "./NearWidget";
-import { WidgetPreviewFactory } from "./WidgetPreview";
+import { openAccountWidgets } from "./commands/load";
+import { loginAccount, handleLoginCallback } from "./commands/login";
+import { SocialFS } from "./modules/file-system";
+import { WidgetPreviewPanel } from "./modules/preview";
 
 export function activate(context: vscode.ExtensionContext) {
-  const widgetsFS = new NearFS();
 
-  WidgetPreviewFactory.init(context);
+  // File System
+  const socialFS = new SocialFS();
 
   context.subscriptions.push(
-    vscode.workspace.registerFileSystemProvider(NEAR_FS_SCHEME, widgetsFS, {
-      isCaseSensitive: true,
-    })
+    vscode.workspace.registerFileSystemProvider(
+      socialFS.scheme, socialFS, { isCaseSensitive: true })
   );
+
+  // Preview Widget
+  const previewPanel = new WidgetPreviewPanel(context);
 
   context.subscriptions.push(
     vscode.commands.registerCommand("near.showWidgetPreview", () => {
-      let error = false;
-      const uri = window.activeTextEditor?.document?.uri.toString() || null;
-      if (uri !== null) {
-        const widget = getWidget(uri);
-        if (widget !== null) {
-          WidgetPreviewFactory.createOrFocus(widget.uri.toString());
-        } else {
-          error = true;
-        }
-      } else {
-        error = true;
-      }
-      if (error) {
-        vscode.window.showInformationMessage(
-          "Error showing preview."
-        );
-      }
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand("near.reloadWidgetPreview",() => {
-      WidgetPreviewFactory.reloadActivePreview();
+      previewPanel.createPanel();
+      previewPanel.showActiveCode();
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.focusActivePreviewSource",() => {
-      WidgetPreviewFactory.focusActivePreviewSource();
+    vscode.commands.registerCommand("near.reloadWidgetPreview", () => {
+      previewPanel.showActiveCode(true);
     })
   );
 
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand("near.focusActivePreviewSource", () => {
+  //     WidgetPreviewFactory.focusActivePreviewSource();
+  //   })
+  // );
+
+  // Open Widgets by Account ID
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.openWidgetsFromAccount", () =>
-      openWidgetsFromAccount(context)
+    vscode.commands.registerCommand("near.openWidgetsFromAccount", (accountId?) =>
+      openAccountWidgets(socialFS.scheme, accountId)
     )
   );
 
+  // Login and Login Callback
   context.subscriptions.push(
     vscode.commands.registerCommand("near.login", () =>
       loginAccount(context)
     )
   );
 
-  const handleUri = (uri: vscode.Uri) => {
-    const queryParams = new URLSearchParams(uri.query);
-
-    if (queryParams.has('account_id')) {
-      const accountId = queryParams.get('account_id') as string;
-      vscode.window.showInformationMessage(`NEAR Account: ${accountId}`);
-      vscode.workspace.updateWorkspaceFolders(0, 0, { uri: vscode.Uri.parse(`${NEAR_FS_SCHEME}:/${accountId}/`), name: `NEAR: ${accountId}` });
-    }
-  };
-
   context.subscriptions.push(
     vscode.window.registerUriHandler({
-      handleUri
+      handleUri: handleLoginCallback
     })
   );
-
 }
 
 // This method is called when your extension is deactivated

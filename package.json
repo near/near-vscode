@@ -38,6 +38,13 @@
         "category": "NEAR.social"
       },
       {
+        "command": "near.publishWidget",
+        "title": "Publish Widget",
+        "category": "NEAR.social",
+        "enablement": "resourceScheme == near",
+        "icon": "$(cloud-upload)"
+      },
+      {
         "command": "near.showWidgetPreview",
         "title": "Show Widget preview",
         "category": "NEAR.social",
@@ -57,7 +64,7 @@
         "category": "NEAR.social",
         "enablement": "activeWebviewPanelId == 'WidgetPreview'",
         "icon": "$(go-to-file)"
-      }  
+      }
     ],
     "resourceLabelFormatters": [
       {
@@ -94,6 +101,11 @@
           "group": "navigation"
         },
         {
+          "when": "resourceScheme == near",
+          "command": "near.publishWidget",
+          "group": "navigation"
+        },
+        {
           "command": "near.reloadWidgetPreview",
           "when": "activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
@@ -109,15 +121,7 @@
           "command": "near.openWidgetsFromAccount"
         }
       ]
-    },
-    "viewsWelcome": [
-      {
-        "view": "explorer",
-        "contents": "To start, please login into your NEAR account: [Login With NEAR](command:near.login)",
-        "when": "workbenchState == empty"
-      }
-    ]
-
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",

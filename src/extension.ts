@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { openAccountWidgets } from "./commands/load";
-import { loginAccount, handleLoginCallback } from "./commands/login";
+import { loginAccount } from "./commands/login";
+import { publishCode } from "./commands/publish";
+import { handleTransactionCallback } from "./commands/callbacks";
 import { SocialFS } from "./modules/file-system";
 import { WidgetPreviewPanel } from "./modules/preview";
 
@@ -43,16 +45,24 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  // Login and Login Callback
+  // Login
   context.subscriptions.push(
     vscode.commands.registerCommand("near.login", () =>
-      loginAccount(context)
+      loginAccount(context, 'mainnet')
     )
   );
 
+  // Publish Code
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.publishWidget", () =>
+      publishCode(context, 'mainnet')
+    )
+  );
+
+  // Callback
   context.subscriptions.push(
     vscode.window.registerUriHandler({
-      handleUri: handleLoginCallback
+      handleUri: handleTransactionCallback
     })
   );
 }

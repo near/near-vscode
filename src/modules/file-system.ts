@@ -23,7 +23,6 @@ export class SocialFS implements vscode.FileSystemProvider {
 
   async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
     const result: [string, vscode.FileType][] = [];
-
     const accountId = uri.fsPath.split("/")[1];
     const widgetNames = await getWidgetsNames(accountId);
     for (const widgetName of widgetNames) {
@@ -34,7 +33,7 @@ export class SocialFS implements vscode.FileSystemProvider {
 
   async readFile(uri: vscode.Uri): Promise<Uint8Array> {
     let [root, accountId, widgetName] = uri.path.split("/");
-    if(!widgetName.includes(FS_EXT)){return Buffer.from("")}
+    if(!widgetName.includes(FS_EXT)){return Buffer.from("");}
     const code = await getWidgetCode(accountId, widgetName.replace(FS_EXT, ''));
     return Buffer.from(code);
   }

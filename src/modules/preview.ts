@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { window } from "vscode";
 
 export class WidgetPreviewPanel {
   panel: vscode.WebviewPanel | undefined;
@@ -33,7 +32,7 @@ export class WidgetPreviewPanel {
   }
 
   public showActiveCode(forceUpdate = false) {
-    let code = window.activeTextEditor?.document?.getText() || "";
+    let code = vscode.window.activeTextEditor?.document?.getText() || "";
 
     this.panel?.webview.postMessage({
       command: "update-code",

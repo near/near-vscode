@@ -86,7 +86,7 @@ export class NearWidget {
       ctime: 0,
       mtime: 0,
       size: this.code?.length || 0,
-      permissions: vscode.FilePermission.Readonly,
+      permissions: 0,
       widget: this,
     };
   }

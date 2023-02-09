@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { window } from "vscode";
+import { getChangeForWidget, getChangesForPreview } from "./LocalChange";
 import { getWidget, waitForWidget } from "./NearWidget";
 
 export class WidgetPreviewFactory {
@@ -195,14 +196,18 @@ export class WidgetPreview {
 
   public updateCode(forceUpdate = false) {
     if (this.panel.visible) {
-      const code = getWidgetSourceCode(this.widgetUriStr.toString());
-      if (code) {
+      // const code = getWidgetSourceCode(this.widgetUriStr.toString());
+      const p = getPreviewProps(this.widgetUriStr.toString());
+      if (p) {
+        const previewProps = JSON.stringify(p);
         this.panel.webview.postMessage({
           command: "update-code",
-          code,
+          iframeQs: previewProps,
           forceUpdate,
           widgetUri: this.widgetUriStr.toString(),
         });
+      } else {
+        throw new Error("bad preview props");
       }
     }
   }
@@ -276,13 +281,47 @@ export function getWebviewOptions(
   };
 }
 
+interface WidgetConfigProp {
+  redirectMap: Record<string, { code: string }>;
+}
+interface PreviewProps {
+  code: string;
+  props?: Record<string, any>;
+  config?: WidgetConfigProp;
+}
+
+export const getPreviewProps = (widgetUriStr: string): PreviewProps => {
+  const widget = getWidget(widgetUriStr);
+  if (!widget) {
+    window.showErrorMessage(`Error loading preview: ${widgetUriStr}`);
+    return { code: `return <code>error</code>` };
+  } else {
+    let code = "";
+    const change = getChangeForWidget(widgetUriStr);
+    if (change) {
+      code = change.content?.toString() || "";
+    } else {
+      code = widget.code?.toString("utf-8") || "";
+    }
+    const redirectMap = getChangesForPreview();
+    // const redirectMap = {
+    //   "mob.near/widget/ProfileCircle": {code: "return <h2>🤖🤖🤖🤖🤖 OVERRIDE</h2>"},
+    //   "mob.near/widget/ProfileImage": {code: "return <h2>🤖🤖🤖🤖🤖 OVERRIDE</h2>"},
+    // };
+    return {
+      code,
+      config: { redirectMap },
+    };
+  }
+};
+
 export function getWidgetSourceCode(widgetUriStr: string): string {
   const widget = getWidget(widgetUriStr);
   if (!widget || widget.code === null) {
     window.showErrorMessage(`Error loading preview: ${widgetUriStr}`);
     return `return <code>error</code>`;
   } else {
-    return widget.code;
+    return widget.code.toString();
   }
   // return (
   //   previewUrlPrefix +

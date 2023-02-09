@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { getChangeForWidget } from "./LocalChange";
 import { fsUriStrToUriStr, FS_EXT, NEAR_FS_SCHEME } from "./util";
 
 const registry: Map<string, NearWidget> = new Map();
@@ -46,7 +47,7 @@ export interface WidgetFile extends vscode.FileStat {
   ctime: number;
   mtime: number;
   size: number;
-  permissions: vscode.FilePermission;
+  permissions?: vscode.FilePermission;
   widget: NearWidget;
 }
 
@@ -54,18 +55,22 @@ export class NearWidget {
   readonly accountId: AccountId;
   readonly name: WidgetName;
   readonly uri: vscode.Uri;
-  code: string | null;
+  code: Buffer | null;
   chainData: any = null;
 
   private constructor(
     accountId: AccountId,
     name: WidgetName,
-    code: string | null
+    code: Buffer | null
   ) {
     this.accountId = accountId;
     this.name = name;
     this.uri = this._makeUri();
     this.code = code;
+  }
+
+  get chainUri(): string {
+    return `${this.accountId}/widget/${this.name}`;
   }
 
   get fsName(): WidgetFSName {
@@ -100,8 +105,12 @@ export class NearWidget {
     }
   }
 
-  static create(accountId: AccountId, name: WidgetName, code: string | null) {
+  static create(accountId: AccountId, name: WidgetName, code: Buffer | null) {
     const newWidget = new NearWidget(accountId, name, code);
+    const localChanges = getChangeForWidget(newWidget.uri.toString());
+    if (localChanges) {
+      newWidget.code = localChanges.content;
+    }
     setWidget(newWidget);
     return newWidget;
   }

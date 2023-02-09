@@ -90,7 +90,8 @@ export class NearAccount {
       rawWidgets
     ).map(([name, data]: [string, any]) => {
       const code = typeof data === "string" ? data : typeof data === 'object' && typeof data[""] === 'string' ? data[""] : null;
-      const newWidget = NearWidget.create(this.accountId, name, code);
+      const codeBuffer = code !== null ? Buffer.from(code) : null;
+      const newWidget = NearWidget.create(this.accountId, name, codeBuffer);
       newWidget.chainData = Buffer.from(rawResult.result).toString();
       return [name, newWidget];
     });

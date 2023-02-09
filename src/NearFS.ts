@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { updateChangeForWidget } from "./LocalChange";
 import { NearAccount, NearAccountDir } from "./NearAccount";
 import { NearWidget, WidgetFile } from "./NearWidget";
 import {
@@ -126,7 +127,8 @@ export class NearFS implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): void {
-    console.warn("&& writeFile", uri, content, options);
+    console.warn("&& writeFile", uri, options);
+    updateChangeForWidget(uri.toString(), Buffer.from(content));
   }
 
   // --- manage files/folders

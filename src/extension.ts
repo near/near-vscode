@@ -1,10 +1,13 @@
 import * as vscode from "vscode";
 import {window} from "vscode";
 import {NEAR_FS_SCHEME} from "./util";
-import {openWidgetsFromAccount} from "./near-openWidgetsFromAccount";
+import {openWidgetsFromAccount} from "./commands/load";
 import {NearFS} from "./NearFS";
 import {getWidget} from "./NearWidget";
 import {WidgetPreviewFactory} from "./WidgetPreview";
+import { loginAccount } from "./commands/login";
+import { publishCode } from "./commands/publish";
+import { handleTransactionCallback } from "./callbacks";
 
 export function activate(context: vscode.ExtensionContext) {
   const widgetsFS = new NearFS();
@@ -51,9 +54,30 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.openWidgetsFromAccount", () =>
-      openWidgetsFromAccount(context)
+    vscode.commands.registerCommand("near.openWidgetsFromAccount", (accountId?) =>
+      openWidgetsFromAccount(accountId)
     )
+  );
+
+  // Login
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.login", () =>
+      loginAccount(context, 'mainnet')
+    )
+  );
+
+  // Publish Code
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.publishWidget", () =>
+      publishCode(context, 'mainnet')
+    )
+  );
+
+  // Callback
+  context.subscriptions.push(
+    vscode.window.registerUriHandler({
+      handleUri: handleTransactionCallback
+    })
   );
 }
 

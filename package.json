@@ -29,9 +29,21 @@
   "contributes": {
     "commands": [
       {
+        "command": "near.login",
+        "title": "Login",
+        "category": "NEAR.social"
+      },
+      {
         "command": "near.openWidgetsFromAccount",
         "title": "View account in workspace",
         "category": "NEAR.social"
+      },
+      {
+        "command": "near.publishWidget",
+        "title": "Publish Widget",
+        "category": "NEAR.social",
+        "enablement": "resourceScheme == near",
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "near.showWidgetPreview",
@@ -87,6 +99,11 @@
         {
           "when": "resourceScheme == near",
           "command": "near.showWidgetPreview",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceScheme == near",
+          "command": "near.publishWidget",
           "group": "navigation"
         },
         {

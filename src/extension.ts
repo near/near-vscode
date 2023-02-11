@@ -8,11 +8,13 @@ import {WidgetPreviewFactory} from "./WidgetPreview";
 import { loginAccount } from "./commands/login";
 import { publishCode } from "./commands/publish";
 import { handleTransactionCallback } from "./callbacks";
+import { initLocalChangesRegistry } from "./LocalChange";
 
 export function activate(context: vscode.ExtensionContext) {
   const widgetsFS = new NearFS();
 
   WidgetPreviewFactory.init(context);
+  initLocalChangesRegistry(context);
 
   context.subscriptions.push(
     vscode.workspace.registerFileSystemProvider(NEAR_FS_SCHEME, widgetsFS, {

@@ -1,12 +1,8 @@
 import * as vscode from "vscode";
-import { updateChangeForWidget } from "./LocalChange";
+import { getChangeForWidget, updateChangeForWidget } from "./LocalChange";
 import { NearAccount, NearAccountDir } from "./NearAccount";
 import { NearWidget, WidgetFile } from "./NearWidget";
-import {
-  isValidAccountId,
-  isValidWidgetFsPath,
-  NEAR_FS_SCHEME
-} from "./util";
+import { isValidAccountId, isValidWidgetFsPath, NEAR_FS_SCHEME } from "./util";
 
 const FS_FILTER = [".vscode", ".git"];
 export const isValidNearFsUri = (uri: vscode.Uri): boolean => {
@@ -116,7 +112,12 @@ export class NearFS implements vscode.FileSystemProvider {
           `Error loading this file content from chain.`
         );
       }
-      return Buffer.from(entry.widget.code);
+      const localChange = getChangeForWidget(uri.toString());
+      if (localChange && localChange.content !== null) {
+        return localChange.content;
+      } else {
+        return Buffer.from(entry.widget.code);
+      }
     } else {
       throw vscode.FileSystemError.FileNotFound();
     }
@@ -151,16 +152,20 @@ export class NearFS implements vscode.FileSystemProvider {
 
   // --- lookup
 
-  private async _lookup(uri: vscode.Uri, silent: false, forceRefresh?: boolean): Promise<Entry>;
+  private async _lookup(
+    uri: vscode.Uri,
+    silent: false,
+    forceRefresh?: boolean
+  ): Promise<Entry>;
   private async _lookup(
     uri: vscode.Uri,
     silent: boolean,
-    forceRefresh?: boolean,
+    forceRefresh?: boolean
   ): Promise<Entry | undefined>;
   private async _lookup(
     uri: vscode.Uri,
     silent: boolean,
-    forceRefresh?: boolean,
+    forceRefresh?: boolean
   ): Promise<Entry | undefined> {
     const [root, accountId, widgetFsName] = uri.path.split("/");
     if (!accountId && !widgetFsName) {

@@ -7,7 +7,6 @@ import { getWidget, waitForWidget } from "./NearWidget";
 
 export class WidgetPreviewFactory {
   private static instance: WidgetPreviewFactory;
-
   private context: vscode.ExtensionContext;
   private previews: Record<string, WidgetPreview> = {};
 
@@ -16,10 +15,10 @@ export class WidgetPreviewFactory {
   }
 
   static init(context: vscode.ExtensionContext) {
-    if (this.instance) {
+    if (WidgetPreviewFactory.instance) {
       throw new Error("WidgetEditorPreview is already initialized");
     }
-    this.instance = new WidgetPreviewFactory(context);
+    WidgetPreviewFactory.instance = new WidgetPreviewFactory(context);
     vscode.window.registerWebviewPanelSerializer(WidgetPreview.viewType, {
       async deserializeWebviewPanel(
         webviewPanel: vscode.WebviewPanel,

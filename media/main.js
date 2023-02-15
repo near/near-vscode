@@ -1,11 +1,12 @@
 function getWidgetUrl(network) {
   return network === "testnet"
     ? "https://test.near.social/#/embed/test_alice.testnet/widget/remote-code?code="
-    : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
+    // : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
+    : "https://widget-config.viewer-xlt.pages.dev/#embed/maxdev.near/widget/ide-preview?idePreview=";
 }
 
-function setIframeSrc(code, forceUpdate) {
-  const iframeSrc = getWidgetUrl() + encodeURIComponent(code);
+function setIframeSrc(iframeQs, forceUpdate) {
+  const iframeSrc = getWidgetUrl() + encodeURIComponent(iframeQs);
   const iframeEl = document.getElementById("code-widget");
   if (iframeEl) {
     const existingSrc = iframeEl.getAttribute('src');
@@ -42,9 +43,9 @@ function setIframeSrc(code, forceUpdate) {
     const message = event.data; // The json data that the extension sent
     switch (message.command) {
       case "update-code":
-        if (message.code) {
-          vscode.setState({ code: message.code, widgetUri: message.widgetUri });
-          setIframeSrc(message.code, message.forceUpdate);
+        if (message.iframeQs) {
+          vscode.setState({ iframeQs: message.iframeQs, widgetUri: message.widgetUri });
+          setIframeSrc(message.iframeQs, message.forceUpdate);
         }
         break;
     }

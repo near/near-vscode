@@ -1,11 +1,8 @@
 import * as vscode from "vscode";
+import { getChangeForWidget, updateChangeForWidget } from "./LocalChange";
 import { NearAccount, NearAccountDir } from "./NearAccount";
 import { NearWidget, WidgetFile } from "./NearWidget";
-import {
-  isValidAccountId,
-  isValidWidgetFsPath,
-  NEAR_FS_SCHEME
-} from "./util";
+import { isValidAccountId, isValidWidgetFsPath, NEAR_FS_SCHEME } from "./util";
 
 const FS_FILTER = [".vscode", ".git"];
 export const isValidNearFsUri = (uri: vscode.Uri): boolean => {
@@ -78,6 +75,15 @@ export class NearFS implements vscode.FileSystemProvider {
     this.root.accountDirs.set(accountId, accountDir);
   }
 
+  async lookupWidget(uri: vscode.Uri): Promise<NearWidget | null> {
+    const entry = await this._lookupAsFile(uri, true);
+    if (entry) {
+      return entry.widget;
+    } else {
+      return null;
+    }
+  }
+
   async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
     if (!isValidNearFsUri(uri)) {
       throw vscode.FileSystemError.FileNotFound();
@@ -115,7 +121,12 @@ export class NearFS implements vscode.FileSystemProvider {
           `Error loading this file content from chain.`
         );
       }
-      return Buffer.from(entry.widget.code);
+      const localChange = getChangeForWidget(uri.toString());
+      if (localChange && localChange.content !== null) {
+        return localChange.content;
+      } else {
+        return Buffer.from(entry.widget.code);
+      }
     } else {
       throw vscode.FileSystemError.FileNotFound();
     }
@@ -126,7 +137,8 @@ export class NearFS implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): void {
-    console.warn("&& writeFile", uri, content, options);
+    console.warn("&& writeFile", uri, options);
+    updateChangeForWidget(uri.toString(), Buffer.from(content));
   }
 
   // --- manage files/folders
@@ -149,16 +161,20 @@ export class NearFS implements vscode.FileSystemProvider {
 
   // --- lookup
 
-  private async _lookup(uri: vscode.Uri, silent: false, forceRefresh?: boolean): Promise<Entry>;
+  private async _lookup(
+    uri: vscode.Uri,
+    silent: false,
+    forceRefresh?: boolean
+  ): Promise<Entry>;
   private async _lookup(
     uri: vscode.Uri,
     silent: boolean,
-    forceRefresh?: boolean,
+    forceRefresh?: boolean
   ): Promise<Entry | undefined>;
   private async _lookup(
     uri: vscode.Uri,
     silent: boolean,
-    forceRefresh?: boolean,
+    forceRefresh?: boolean
   ): Promise<Entry | undefined> {
     const [root, accountId, widgetFsName] = uri.path.split("/");
     if (!accountId && !widgetFsName) {

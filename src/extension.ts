@@ -1,23 +1,29 @@
 import * as vscode from "vscode";
 import {window} from "vscode";
 import {NEAR_FS_SCHEME} from "./util";
-import {openWidgetsFromAccount} from "./commands/load";
 import {NearFS} from "./NearFS";
 import {getWidget} from "./NearWidget";
 import {WidgetPreviewFactory} from "./WidgetPreview";
-import { loginAccount } from "./commands/login";
-import { publishCode } from "./commands/publish";
-import { handleTransactionCallback } from "./callbacks";
+import {loginAccount} from "./commands/login";
+import {publishCode} from "./commands/publish";
+import {handleTransactionCallback} from "./callbacks";
+import {getDecorationsProvider, initLocalChangesRegistry} from "./LocalChange";
+import {openWidgetsFromAccount} from './commands/load';
 
 export function activate(context: vscode.ExtensionContext) {
   const widgetsFS = new NearFS();
 
   WidgetPreviewFactory.init(context);
+  initLocalChangesRegistry(context, widgetsFS);
 
   context.subscriptions.push(
     vscode.workspace.registerFileSystemProvider(NEAR_FS_SCHEME, widgetsFS, {
       isCaseSensitive: true,
     })
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerFileDecorationProvider(getDecorationsProvider())
   );
 
   context.subscriptions.push(
@@ -35,20 +41,18 @@ export function activate(context: vscode.ExtensionContext) {
         error = true;
       }
       if (error) {
-        vscode.window.showInformationMessage(
-          "Error showing preview."
-        );
+        vscode.window.showInformationMessage("Error showing preview.");
       }
     })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.reloadWidgetPreview",() => {
+    vscode.commands.registerCommand("near.reloadWidgetPreview", () => {
       WidgetPreviewFactory.reloadActivePreview();
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.focusActivePreviewSource",() => {
+    vscode.commands.registerCommand("near.focusActivePreviewSource", () => {
       WidgetPreviewFactory.focusActivePreviewSource();
     })
   );

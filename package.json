@@ -50,7 +50,7 @@
         "title": "Show Widget preview",
         "category": "NEAR.social",
         "enablement": "resourceScheme == near",
-        "icon": "$(preview)"
+        "icon": "$(open-preview)"
       },
       {
         "command": "near.reloadWidgetPreview",
@@ -72,8 +72,9 @@
         "scheme": "near",
         "formatting": {
           "label": "${path}",
-          "separator": "/",
-          "workspaceSuffix": "NEAR"
+          "separator": " / ",
+          "workspaceSuffix": "NEAR",
+          "workspaceTooltip": "Widget on mainnet"
         }
       }
     ],

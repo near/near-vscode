@@ -1,21 +1,14 @@
 import * as vscode from "vscode";
 import {window} from "vscode";
 import {NEAR_FS_SCHEME} from "./util";
-import {openWidgetsFromAccount} from "./commands/load";
 import {NearFS} from "./NearFS";
 import {getWidget} from "./NearWidget";
 import {WidgetPreviewFactory} from "./WidgetPreview";
-import { loginAccount } from "./commands/login";
-import { publishCode } from "./commands/publish";
-import { handleTransactionCallback } from "./callbacks";
-import { initLocalChangesRegistry } from "./LocalChange";
-import { window } from "vscode";
-import { getDecorationsProvider, initLocalChangesRegistry } from "./LocalChange";
-import { openWidgetsFromAccount } from "./near-openWidgetsFromAccount";
-import { NearFS } from "./NearFS";
-import { getWidget } from "./NearWidget";
-import { NEAR_FS_SCHEME } from "./util";
-import { WidgetPreviewFactory } from "./WidgetPreview";
+import {loginAccount} from "./commands/login";
+import {publishCode} from "./commands/publish";
+import {handleTransactionCallback} from "./callbacks";
+import {getDecorationsProvider, initLocalChangesRegistry} from "./LocalChange";
+import {openWidgetsFromAccount} from './commands/load';
 
 export function activate(context: vscode.ExtensionContext) {
   const widgetsFS = new NearFS();

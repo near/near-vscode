@@ -89,10 +89,8 @@ export class NearAccount {
     const newWidgets: [WidgetName, NearWidget][] = Object.entries(
       rawWidgets
     ).map(([name, data]: [string, any]) => {
-      const code = typeof data === "string" ? data : typeof data === 'object' && typeof data[""] === 'string' ? data[""] : null;
-      const codeBuffer = code !== null ? Buffer.from(code) : null;
-      const newWidget = NearWidget.create(this.accountId, name, codeBuffer);
-      newWidget.chainData = Buffer.from(rawResult.result).toString();
+      const code = typeof data === "string" ? data : typeof data === 'object' && typeof data[""] === 'string' ? data[""] : "";
+      const newWidget = NearWidget.create(this.accountId, name, Buffer.from(code));
       return [name, newWidget];
     });
     this.widgets = Object.fromEntries(newWidgets);

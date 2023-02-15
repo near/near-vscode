@@ -75,6 +75,15 @@ export class NearFS implements vscode.FileSystemProvider {
     this.root.accountDirs.set(accountId, accountDir);
   }
 
+  async lookupWidget(uri: vscode.Uri): Promise<NearWidget | null> {
+    const entry = await this._lookupAsFile(uri, true);
+    if (entry) {
+      return entry.widget;
+    } else {
+      return null;
+    }
+  }
+
   async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
     if (!isValidNearFsUri(uri)) {
       throw vscode.FileSystemError.FileNotFound();

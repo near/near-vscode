@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
-import { getChangeForWidget } from "./LocalChange";
-import { fsUriStrToUriStr, FS_EXT, NEAR_FS_SCHEME } from "./util";
+import {FS_EXT, fsUriStrToUriStr, NEAR_FS_SCHEME} from "./util";
 
 const registry: Map<string, NearWidget> = new Map();
 const WAIT_TIMEOUT = 10000;
@@ -55,13 +54,12 @@ export class NearWidget {
   readonly accountId: AccountId;
   readonly name: WidgetName;
   readonly uri: vscode.Uri;
-  code: Buffer | null;
-  chainData: any = null;
+  code: Buffer;
 
   private constructor(
     accountId: AccountId,
     name: WidgetName,
-    code: Buffer | null
+    code: Buffer,
   ) {
     this.accountId = accountId;
     this.name = name;
@@ -105,12 +103,8 @@ export class NearWidget {
     }
   }
 
-  static create(accountId: AccountId, name: WidgetName, code: Buffer | null) {
+  static create(accountId: AccountId, name: WidgetName, code: Buffer) {
     const newWidget = new NearWidget(accountId, name, code);
-    const localChanges = getChangeForWidget(newWidget.uri.toString());
-    if (localChanges) {
-      newWidget.code = localChanges.content;
-    }
     setWidget(newWidget);
     return newWidget;
   }

@@ -72,8 +72,9 @@
         "scheme": "near",
         "formatting": {
           "label": "${path}",
-          "separator": "/",
-          "workspaceSuffix": "NEAR"
+          "separator": " / ",
+          "workspaceSuffix": "NEAR",
+          "workspaceTooltip": "Widget on mainnet"
         }
       }
     ],

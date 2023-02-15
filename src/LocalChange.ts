@@ -1,18 +1,50 @@
 import * as vscode from "vscode";
-import { Uri } from "vscode";
-import { getWidget, getWidgetByFsUri } from "./NearWidget";
-import { FS_EXT, GLOBAL_STORAGE_LOCAL_CHANGES_KEY } from "./util";
+import {Uri} from "vscode";
+import type {NearFS} from "./NearFS";
+import {getWidget} from "./NearWidget";
+import {GLOBAL_STORAGE_LOCAL_CHANGES_KEY} from "./util";
 
 const registry: Map<string, LocalChange> = new Map();
 let context: vscode.ExtensionContext;
-export const initLocalChangesRegistry = (ctx: vscode.ExtensionContext) => {
+let fileDecorations: DecorationProvider;
+let nearFs: NearFS;
+export const getDecorationsProvider = () => fileDecorations;
+export const initLocalChangesRegistry = (
+  ctx: vscode.ExtensionContext,
+  fs: NearFS
+) => {
   context = ctx;
+  nearFs = fs;
+  fileDecorations = new DecorationProvider();
   revive();
+};
+
+const hasDiffFromOriginal = async (uriStr: string, newChange: Buffer) => {
+  const uri = vscode.Uri.parse(uriStr);
+  if (uri) {
+    try {
+      const foundWidget = await nearFs.lookupWidget(uri);
+      if (foundWidget) {
+        const compare = Buffer.compare(newChange, foundWidget.code);
+        return compare !== 0;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  } else {
+    return false;
+  }
 };
 
 export const getChangeForWidget = (uriStr: string): LocalChange | null => {
   const w = registry.get(uriStr);
   return w || null;
+};
+
+export const hasChange = (uriStr: string): boolean => {
+  return registry.has(uriStr);
 };
 
 export const getChangesForPreview = () => {
@@ -30,13 +62,23 @@ export const getChangesForPreview = () => {
   return changes;
 };
 
-export const updateChangeForWidget = (uri: string, content: Buffer): void => {
+export const updateChangeForWidget = async (
+  uri: string,
+  content: Buffer
+): Promise<void> => {
   if (registry.has(uri)) {
-    registry.get(uri)?.update(content);
+    const originalChanged = await hasDiffFromOriginal(uri, content);
+    if (!originalChanged) {
+      registry.delete(uri);
+    } else {
+      const existing = registry.get(uri);
+      existing?.update(content);
+    }
   } else {
     const newChange = LocalChange.create(uri, content);
     registry.set(uri, newChange);
   }
+  fileDecorations.updateDecorations(uri);
   persist();
 };
 
@@ -44,14 +86,15 @@ export const disposeChangeForWidget = (uri: string | string): void => {
   registry.delete(uri);
 };
 
-const persist = () => {
+const persist = async () => {
   const toStore: [string, string][] = [];
   registry.forEach((c, k) => {
     if (c.contentStr !== null) {
       toStore.push([k, c.contentStr]);
     }
   });
-  context.globalState.update(GLOBAL_STORAGE_LOCAL_CHANGES_KEY, toStore);
+  await context.globalState.update(GLOBAL_STORAGE_LOCAL_CHANGES_KEY, toStore);
+  // context.globalState.update(GLOBAL_STORAGE_LOCAL_CHANGES_KEY, undefined);
 };
 const revive = () => {
   const stored = context.globalState.get<string>(
@@ -65,32 +108,13 @@ const revive = () => {
   }
 };
 
-// let manager: LocalChangeManager;
-// export class LocalChangeManager {
-//   private static instance: LocalChangeManager;
-//   private context: vscode.ExtensionContext;
-//   private changes: Record<string, LocalChange> = {};
-
-//   private constructor(context: vscode.ExtensionContext) {
-//     this.context = context;
-//   }
-//   static onDocumentChange(widgetUri: string, code: Buffer) {}
-
-//   static init(context: vscode.ExtensionContext) {
-//     if (!manager) {
-//       throw new Error("LocalChangeManager already initialized");
-//     }
-//     const newInstance = new LocalChangeManager(context);
-//     manager = newInstance;
-//   }
-// }
-
 /**
  * Tracks local changes to the widget files.
  */
 export class LocalChange {
   uri: Uri;
   content: Buffer | null = null;
+  original: Buffer | null = null;
   private constructor(uri: Uri) {
     this.uri = uri;
   }
@@ -111,5 +135,35 @@ export class LocalChange {
 
   toStorageStr() {
     return JSON.stringify({ uri: this.uri, content: this.contentStr });
+  }
+}
+
+class DecorationProvider implements vscode.FileDecorationProvider {
+  private readonly _onDidChangeDecorations = new vscode.EventEmitter<
+    vscode.Uri[]
+  >();
+  readonly onDidChangeFileDecorations: vscode.Event<vscode.Uri[]> =
+    this._onDidChangeDecorations.event;
+  provideFileDecoration(
+    uri: vscode.Uri,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.FileDecoration> {
+    if (hasChange(uri.toString())) {
+      const decor: vscode.FileDecoration = {
+        badge: "M",
+        tooltip: "Modified locally",
+        color: new vscode.ThemeColor(
+          "gitDecoration.stageModifiedResourceForeground"
+        ),
+        propagate: true,
+      };
+      return decor;
+    }
+  }
+  updateDecorations(uriStr: string) {
+    const uri = vscode.Uri.parse(uriStr);
+    if (uri) {
+      this._onDidChangeDecorations.fire([uri]);
+    }
   }
 }

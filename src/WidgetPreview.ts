@@ -33,7 +33,6 @@ export class WidgetPreviewFactory {
             WidgetPreviewFactory.create(state.widgetUri, webviewPanel);
           }
         }
-        // TODO: wait for the widget to exist in the registry, and createOrFocus() it
       },
     });
   }
@@ -303,10 +302,6 @@ export const getPreviewProps = (widgetUriStr: string): PreviewProps => {
       code = widget.code?.toString("utf-8") || "";
     }
     const redirectMap = getChangesForPreview();
-    // const redirectMap = {
-    //   "mob.near/widget/ProfileCircle": {code: "return <h2>🤖🤖🤖🤖🤖 OVERRIDE</h2>"},
-    //   "mob.near/widget/ProfileImage": {code: "return <h2>🤖🤖🤖🤖🤖 OVERRIDE</h2>"},
-    // };
     return {
       code,
       config: { redirectMap },
@@ -322,10 +317,6 @@ export function getWidgetSourceCode(widgetUriStr: string): string {
   } else {
     return widget.code.toString();
   }
-  // return (
-  //   previewUrlPrefix +
-  //   encodeURIComponent(`return <h1>${new Date().toISOString()}</h1>`)
-  // );
 }
 
 export function getNonce(): string {

@@ -4,13 +4,15 @@ import * as vscode from "vscode";
 
 export class WidgetPreviewPanel {
   panel: vscode.WebviewPanel | undefined;
+  visible: boolean;
   readonly context: vscode.ExtensionContext;
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
+    this.visible = false;
   }
 
-  public createPanel() {
+  private createNewPanel(){
     this.panel = vscode.window.createWebviewPanel(
       "WidgetPreview",
       "Widget Preview",
@@ -22,13 +24,20 @@ export class WidgetPreviewPanel {
     );
 
     const isDark = vscode.ColorThemeKind.Dark === vscode.window.activeColorTheme.kind;
-    this.panel.iconPath = vscode.Uri.joinPath(
+    this.panel!.iconPath = vscode.Uri.joinPath(
       this.context.extensionUri,
       "media",
       isDark ? "near-dark.png" : "near-light.png"
     );
 
-    setHtmlForWebview(this.context, this.panel);
+    this.panel!.onDidDispose((e) => {this.visible = false;});
+  }
+
+  public createAndShowPanel() {
+    if(!this.visible){ this.createNewPanel(); }
+
+    this.visible = true;
+    setHtmlForWebview(this.context, this.panel!);
   }
 
   public showActiveCode(forceUpdate = false) {

@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("near.showWidgetPreview", () => {
-      previewPanel.createPanel();
+      previewPanel.createAndShowPanel();
       previewPanel.showActiveCode();
     })
   );

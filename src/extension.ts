@@ -11,9 +11,6 @@ import { getTransactionStatus } from "./modules/social";
 export function activate(context: vscode.ExtensionContext) {
   const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');
 
-  getTransactionStatus("BBzRKJSYvk1S2ohdZAWqURnojrBpyrK6Q5tbX51Nv6WR").then(res => console.log("LOG", res));
-  getTransactionStatus("9ETQjfV6MzPgxJZCtbKFHW6LTetTpVfy9Jwmm7DHyB1F").then(res => console.log("LOG", res));
-
   // File System
   let socialFS = new SocialFS(localWorkspace);
   if (localWorkspace) { populateFS(socialFS, localWorkspace); }

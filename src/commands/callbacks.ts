@@ -3,14 +3,22 @@ import { getTransactionStatus } from '../modules/social';
 
 export const handleTransactionCallback = async (uri: vscode.Uri) => {
   const queryParams = new URLSearchParams(uri.query);
-  console.log("PARAMS", queryParams);
 
   // Transaction callback
   if (queryParams.has('transactionHashes')) {
     const tHash = queryParams.get('transactionHashes') as string;
-    vscode.window.showInformationMessage(`Tx: ${tHash}`);
+
     const result = await getTransactionStatus(tHash);
-    vscode.window.showInformationMessage(`Result: ${result}`);
+    const explorerURL = `https://explorer.near.org/transactions/${tHash}`;
+    const action = (selection?: string)=>{ selection? vscode.env.openExternal(vscode.Uri.parse(explorerURL)) : ""; };
+    
+    if(result.succeeded){
+      vscode.window.showInformationMessage("Successfully Published", "View in Explorer")
+      .then(action);
+    }else{
+      vscode.window.showErrorMessage(`Error: ${result.error}`, "View in Explorer")
+      .then(action);
+    }
   }
 
   // Login callback

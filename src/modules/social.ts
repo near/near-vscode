@@ -76,9 +76,24 @@ export const socialViewMethod = async (methodName: String, args: any): Promise<a
   return promise;
 };
 
-export const getTransactionStatus = async (txhash: string): Promise<FinalExecutionOutcome["status"]> => {
+export const getTransactionStatus = async (txhash: string): Promise<TxStatus> => {
 
     // Retrieve transaction result from the network
     const transaction = await provider.txStatus(txhash, 'unnused');
-    return transaction.status;
+    
+    let status = new TxStatus();
+    console.log(transaction.status as object)
+    status.succeeded = Object.hasOwn(transaction.status as object, "SuccessValue");
+
+    if(!status.succeeded){
+      //@ts-ignore
+      const {Failure:{ActionError: {kind: {FunctionCallError: {ExecutionError: errorMessage}}}}} = transaction.status;
+      status.error = errorMessage;
+    }
+    return status;
+};
+
+class TxStatus{
+  succeeded: boolean = false;
+  error: string = "";
 }

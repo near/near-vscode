@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { FS_EXT } from '../config';
+import { WIDGET_EXT } from '../config';
 import { transactionForPublishingCode } from '../modules/social';
 
 export const publishCode = async (context: vscode.ExtensionContext, network:string) => {
@@ -9,7 +9,7 @@ export const publishCode = async (context: vscode.ExtensionContext, network:stri
 
   const [root, accountId, widgetName] = uri.split('/');
 
-  let transaction = await transactionForPublishingCode(accountId, widgetName.replace(FS_EXT, ''), code);
+  let transaction = await transactionForPublishingCode(accountId, widgetName.replace(WIDGET_EXT, ''), code);
 
   const publisher = context.extension.packageJSON.publisher;
   const name = context.extension.packageJSON.name;

@@ -38,6 +38,16 @@
         "category": "NEAR.social"
       },
       {
+        "command": "near.startSocial",
+        "title": "Setup Social Workbench",
+        "category": "NEAR.social"
+      },
+      {
+        "command": "near.chooseLocalPath",
+        "title": "Choose Widget Folder",
+        "category": "NEAR.social"
+      },
+      {
         "command": "near.publishWidget",
         "title": "Publish Widget",
         "category": "NEAR.social",
@@ -50,22 +60,7 @@
         "category": "NEAR.social",
         "enablement": "resourceScheme == near",
         "icon": "$(preview)"
-      },
-      {
-        "command": "near.reloadWidgetPreview",
-        "title": "Reload preview",
-        "enablement": "activeWebviewPanelId == 'WidgetPreview'",
-        "category": "NEAR.social",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "near.focusActivePreviewSource",
-        "title": "Show source",
-        "category": "NEAR.social",
-        "enablement": "activeWebviewPanelId == 'WidgetPreview'",
-        "icon": "$(go-to-file)"
-      }
-    ],
+      }    ],
     "resourceLabelFormatters": [
       {
         "scheme": "near",
@@ -78,21 +73,29 @@
     ],
     "viewsWelcome": [
       {
-        "view": "explorer",
-        "contents": "You can inspect widgets on NEAR.social.",
-        "when": "workbenchState == empty"
+        "view": "near-social",
+        "contents": "[Choose your working folder](command:near.chooseLocalPath)",
+        "when": "resourceScheme != near"
       },
       {
-        "view": "explorer",
-        "contents": "[Login to NEAR.social with your account](command:near.openWidgetsFromAccount)",
-        "when": "false && workbenchState == empty"
+        "view": "near-social",
+        "contents": "[Fetch your widgets](command:near.login)",
+        "when": "resourceScheme == near"
       },
       {
-        "view": "explorer",
-        "contents": "[View NEAR.social account](command:near.openWidgetsFromAccount)",
-        "when": "workbenchState == empty"
+        "view": "near-social",
+        "contents": "[Fetch an account's widgets](command:near.openWidgetsFromAccount)",
+        "when": "resourceScheme == near"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "near-social",
+          "name": "NEAR Social"
+        }
+      ]
+    },
     "menus": {
       "editor/title": [
         {
@@ -103,16 +106,6 @@
         {
           "when": "resourceScheme == near",
           "command": "near.publishWidget",
-          "group": "navigation"
-        },
-        {
-          "command": "near.reloadWidgetPreview",
-          "when": "activeWebviewPanelId == 'WidgetPreview'",
-          "group": "navigation"
-        },
-        {
-          "command": "near.focusActivePreviewSource",
-          "when": "activeWebviewPanelId == 'WidgetPreview'",
           "group": "navigation"
         }
       ],

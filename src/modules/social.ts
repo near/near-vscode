@@ -3,6 +3,7 @@ import { window } from "vscode";
 import { COST_PER_BYTE, SOCIAL_CONTRACT_ACCOUNT, TGAS30 } from "../config";
 import BN from "bn.js";
 import * as naj from "near-api-js";
+import { FinalExecutionOutcome } from "near-api-js/lib/providers";
 
 const provider = new providers.JsonRpcProvider({ url: "https://rpc.near.org" });
 
@@ -18,7 +19,7 @@ export const getWidgetsNames = async (accountId: AccountId): Promise<string[]> =
   };
 };
 
-export const getWidgetCode = async (accountId: AccountId, widgetName: string): Promise<String> => {
+export const getWidgetCode = async (accountId: AccountId, widgetName: string): Promise<string> => {
   const args = { keys: [`${accountId}/widget/${widgetName}`] };
   let result = await socialViewMethod('get', args);
   let retObj = JSON.parse(Buffer.from(result.result).toString());
@@ -75,9 +76,9 @@ export const socialViewMethod = async (methodName: String, args: any): Promise<a
   return promise;
 };
 
-export const getTransactionResult = async (txhash: string): Promise<any> => {
+export const getTransactionStatus = async (txhash: string): Promise<FinalExecutionOutcome["status"]> => {
 
     // Retrieve transaction result from the network
     const transaction = await provider.txStatus(txhash, 'unnused');
-    return providers.getTransactionLastResult(transaction);
+    return transaction.status;
 }

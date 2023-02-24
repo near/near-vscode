@@ -1,15 +1,18 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { SocialFS } from "./file-system/fs";
 
 export class WidgetPreviewPanel {
   panel: vscode.WebviewPanel | undefined;
   visible: boolean;
+  fileSystem: SocialFS;
   readonly context: vscode.ExtensionContext;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, fileSystem: SocialFS) {
     this.context = context;
     this.visible = false;
+    this.fileSystem = fileSystem;
   }
 
   private createNewPanel(){
@@ -40,12 +43,17 @@ export class WidgetPreviewPanel {
     setHtmlForWebview(this.context, this.panel!);
   }
 
-  public showActiveCode(forceUpdate = false) {
+  public async showActiveCode(forceUpdate = false) {
     let code = vscode.window.activeTextEditor?.document?.getText() || "";
+    
+    let data = await this.fileSystem.readFile(vscode.Uri.parse(`${this.fileSystem.scheme}:/props.json`));
+    let strData = data?.toString() || "{}";
+    let props = JSON.parse(strData);
 
     this.panel?.webview.postMessage({
       command: "update-code",
       code: code,
+      props,
       forceUpdate,
       widgetUri: "",
     });

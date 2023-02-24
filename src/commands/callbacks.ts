@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getTransactionResult } from '../modules/social';
+import { getTransactionStatus } from '../modules/social';
 
 export const handleTransactionCallback = async (uri: vscode.Uri) => {
   const queryParams = new URLSearchParams(uri.query);
@@ -9,7 +9,7 @@ export const handleTransactionCallback = async (uri: vscode.Uri) => {
   if (queryParams.has('transactionHashes')) {
     const tHash = queryParams.get('transactionHashes') as string;
     vscode.window.showInformationMessage(`Tx: ${tHash}`);
-    const result = await getTransactionResult(tHash);
+    const result = await getTransactionStatus(tHash);
     vscode.window.showInformationMessage(`Result: ${result}`);
   }
 

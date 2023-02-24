@@ -3,21 +3,24 @@ import { openAccountWidgets } from "./commands/load";
 import { loginAccount } from "./commands/login";
 import { publishCode } from "./commands/publish";
 import { handleTransactionCallback } from "./commands/callbacks";
-import { SocialFS } from "./modules/file-system";
+import { SocialFS } from "./modules/file-system/fs";
 import { WidgetPreviewPanel } from "./modules/preview";
+import { chooseLocalPath, populateFS } from "./commands/init-fs";
+import { getTransactionStatus } from "./modules/social";
 
 export function activate(context: vscode.ExtensionContext) {
+  const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');
+
+  getTransactionStatus("BBzRKJSYvk1S2ohdZAWqURnojrBpyrK6Q5tbX51Nv6WR").then(res => console.log("LOG", res));
+  getTransactionStatus("9ETQjfV6MzPgxJZCtbKFHW6LTetTpVfy9Jwmm7DHyB1F").then(res => console.log("LOG", res));
 
   // File System
-  const socialFS = new SocialFS();
-
-  context.subscriptions.push(
-    vscode.workspace.registerFileSystemProvider(
-      socialFS.scheme, socialFS, { isCaseSensitive: true })
-  );
+  let socialFS = new SocialFS(localWorkspace);
+  if (localWorkspace) { populateFS(socialFS, localWorkspace); }
+  context.subscriptions.push(vscode.workspace.registerFileSystemProvider(socialFS.scheme, socialFS, { isCaseSensitive: true }));
 
   // Preview Widget
-  const previewPanel = new WidgetPreviewPanel(context);
+  const previewPanel = new WidgetPreviewPanel(context, socialFS);
 
   context.subscriptions.push(
     vscode.commands.registerCommand("near.showWidgetPreview", () => {
@@ -27,22 +30,16 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.reloadWidgetPreview", () => {
-      previewPanel.showActiveCode(true);
+    vscode.commands.registerCommand("near.chooseLocalPath", async () => {
+      chooseLocalPath(context, socialFS);
     })
   );
 
-  // context.subscriptions.push(
-  //   vscode.commands.registerCommand("near.focusActivePreviewSource", () => {
-  //     WidgetPreviewFactory.focusActivePreviewSource();
-  //   })
-  // );
-
   // Open Widgets by Account ID
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.openWidgetsFromAccount", (accountId?) =>
-      openAccountWidgets(socialFS.scheme, accountId)
-    )
+    vscode.commands.registerCommand("near.openWidgetsFromAccount", (accountId?) => {
+      openAccountWidgets(socialFS, accountId);
+    })
   );
 
   // Login
@@ -68,4 +65,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate(context: vscode.ExtensionContext) {
+  context.workspaceState.update('localStoragePath', undefined);
+}

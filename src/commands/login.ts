@@ -5,7 +5,7 @@ export const loginAccount = async (context: vscode.ExtensionContext, network: st
   const publisher = context.extension.packageJSON.publisher;
   const name = context.extension.packageJSON.name;
   const callback = `${vscode.env.uriScheme}://${publisher}.${name}`;
-
+  console.log(callback);
   let url = `https://wallet.${network}.near.org/login/?title=${APP_NAME}&success_url=${callback}`
   vscode.env.openExternal(vscode.Uri.parse(url));
 };

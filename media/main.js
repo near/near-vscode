@@ -4,8 +4,13 @@ function getWidgetUrl(network) {
     : "https://near.social/#/embed/zavodil.near/widget/remote-code?code=";
 }
 
-function setIframeSrc(code, forceUpdate) {
-  const iframeSrc = getWidgetUrl() + encodeURIComponent(code);
+function setIframeSrc(code, props, forceUpdate) {
+  let propsUri = ''
+  for(const prop in props){
+    propsUri += `&${prop}=${encodeURIComponent(props[prop])}`;
+  }
+
+  const iframeSrc = getWidgetUrl() + encodeURIComponent(code) +  propsUri;
   const iframeEl = document.getElementById("code-widget");
   if (iframeEl) {
     const existingSrc = iframeEl.getAttribute('src');
@@ -29,7 +34,7 @@ function setIframeSrc(code, forceUpdate) {
   console.log("Initial state", oldState);
 
   if (oldState?.code) {
-    setIframeSrc(oldState.code, true);
+    setIframeSrc(oldState.code, oldState.props, true);
   }
 
   const requestUpdateCode = () => {
@@ -43,8 +48,8 @@ function setIframeSrc(code, forceUpdate) {
     switch (message.command) {
       case "update-code":
         if (message.code) {
-          vscode.setState({ code: message.code, widgetUri: message.widgetUri });
-          setIframeSrc(message.code, message.forceUpdate);
+          vscode.setState({ code: message.code, props: message.props, widgetUri: message.widgetUri });
+          setIframeSrc(message.code, message.props, message.forceUpdate);
         }
         break;
     }

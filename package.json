@@ -3,16 +3,16 @@
   "displayName": "NEAR IDE",
   "description": "VSCode extension for NEAR",
   "version": "0.1.0",
-  "publisher": "maxistyping",
-  "icon": "media/near-dark.png",
-  "homepage": "https://github.com/maxhr/near-vscode",
+  "publisher": "near-protocol",
+  "icon": "media/social-logo.png",
+  "homepage": "https://github.com/near/near-vscode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/maxhr/near-vscode"
+    "url": "https://github.com/near/near-vscode"
   },
   "bugs": {
-    "url": "https://github.com/maxhr/near-vscode/issues",
-    "email": "max@maxistyping.com"
+    "url": "https://github.com/near/near-vscode/issues",
+    "email": "devrel-ops@near.org"
   },
   "engines": {
     "vscode": "^1.74.0"

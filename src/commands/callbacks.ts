@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getTransactionStatus } from '../modules/social';
 
-export const handleTransactionCallback = async (uri: vscode.Uri) => {
+export const handleTransactionCallback = async (uri: vscode.Uri, context: vscode.ExtensionContext, localWorkspace: string | undefined) => {
   const queryParams = new URLSearchParams(uri.query);
 
   // Transaction callback
@@ -10,20 +10,26 @@ export const handleTransactionCallback = async (uri: vscode.Uri) => {
 
     const result = await getTransactionStatus(tHash);
     const explorerURL = `https://explorer.near.org/transactions/${tHash}`;
-    const action = (selection?: string)=>{ selection? vscode.env.openExternal(vscode.Uri.parse(explorerURL)) : ""; };
-    
-    if(result.succeeded){
+    const action = (selection?: string) => { selection ? vscode.env.openExternal(vscode.Uri.parse(explorerURL)) : ""; };
+
+    if (result.succeeded) {
       vscode.window.showInformationMessage("Successfully Published", "View in Explorer")
-      .then(action);
-    }else{
+        .then(action);
+    } else {
       vscode.window.showErrorMessage(`Error: ${result.error}`, "View in Explorer")
-      .then(action);
+        .then(action);
     }
   }
 
-  // Login callback
+  // Passing an AccountID
   if (queryParams.has('account_id')) {
     const accountId = queryParams.get('account_id') as string;
-    vscode.commands.executeCommand("near.openWidgetsFromAccount", accountId);
+
+    if (localWorkspace) {
+      vscode.commands.executeCommand("near.openWidgetsFromAccount", accountId);
+    } else {
+      context.workspaceState.update('openAccount', accountId);
+      vscode.commands.executeCommand("near.chooseLocalPath");
+    }
   }
 };

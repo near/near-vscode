@@ -1,8 +1,8 @@
 {
-  "name": "near",
-  "displayName": "NEAR IDE",
+  "name": "near-social-ide",
+  "displayName": "NEAR Social",
   "description": "VSCode extension for NEAR",
-  "version": "0.1.0",
+  "version": "1.0.4",
   "publisher": "near-protocol",
   "icon": "media/social-logo.png",
   "homepage": "https://github.com/near/near-vscode",
@@ -56,11 +56,12 @@
       },
       {
         "command": "near.showWidgetPreview",
-        "title": "Show Widget preview",
+        "title": "Show Widget Preview",
         "category": "NEAR.social",
         "enablement": "resourceScheme == near",
         "icon": "$(preview)"
-      }    ],
+      }
+    ],
     "resourceLabelFormatters": [
       {
         "scheme": "near",
@@ -79,12 +80,12 @@
       },
       {
         "view": "near-social",
-        "contents": "[Fetch your widgets](command:near.login)",
+        "contents": "[Login & Fetch Widgets](command:near.login)",
         "when": "resourceScheme == near"
       },
       {
         "view": "near-social",
-        "contents": "[Fetch an account's widgets](command:near.openWidgetsFromAccount)",
+        "contents": "[Fetch Account Widgets](command:near.openWidgetsFromAccount)",
         "when": "resourceScheme == near"
       }
     ],
@@ -117,12 +118,12 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
-    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run -S esbuild-base -- --minify",
+    "esbuild-base": "rimraf out && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "build": "npm run -S esbuild-base -- --sourcemap",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "fmt": "prettier --write \"src/**/*.ts\"&& npm run test -- --fix",
+    "test": "eslint src --ext ts && tsc --noEmit"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.1",
@@ -133,6 +134,7 @@
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "@vscode/test-electron": "^2.2.0",
+    "esbuild": "^0.17.10",
     "eslint": "^8.28.0",
     "glob": "^8.0.3",
     "mocha": "^10.1.0",

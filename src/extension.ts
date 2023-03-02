@@ -6,10 +6,13 @@ import { handleTransactionCallback } from "./commands/callbacks";
 import { SocialFS } from "./modules/file-system/fs";
 import { WidgetPreviewPanel } from "./modules/preview";
 import { chooseLocalPath, populateFS } from "./commands/init-fs";
-import { getTransactionStatus } from "./modules/social";
 
 export function activate(context: vscode.ExtensionContext) {
-  const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');
+  const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');  
+  const openAccount: string | undefined = context.workspaceState.get('openAccount');
+
+  context.workspaceState.update('localStoragePath', undefined);
+  context.workspaceState.update('openAccount', undefined);
 
   // File System
   let socialFS = new SocialFS(localWorkspace);
@@ -39,6 +42,10 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  if(openAccount){
+    vscode.commands.executeCommand("near.openWidgetsFromAccount", openAccount);
+  }
+
   // Login
   context.subscriptions.push(
     vscode.commands.registerCommand("near.login", () =>
@@ -56,12 +63,12 @@ export function activate(context: vscode.ExtensionContext) {
   // Callback
   context.subscriptions.push(
     vscode.window.registerUriHandler({
-      handleUri: handleTransactionCallback
+      handleUri: (uri) => handleTransactionCallback(uri, context, localWorkspace)
     })
   );
 }
 
 // This method is called when your extension is deactivated
-export function deactivate(context: vscode.ExtensionContext) {
-  context.workspaceState.update('localStoragePath', undefined);
+export function deactivate() {
+  vscode.commands.executeCommand('setContext', 'loadedStoragePath', false);
 }

@@ -6,7 +6,7 @@ export const openAccountWidgets = async (fileSystem: SocialFS, accountId?: strin
   accountId = accountId || await vscode.window.showInputBox({ placeHolder: 'mainnet account id' });
 
   if (accountId) { // TODO: Validate correctly
-    vscode.window.showInformationMessage(`NEAR Account: ${accountId}`);
+    vscode.window.showInformationMessage(`Loading widgets for: ${accountId}`);
 
     fileSystem.createDirectory(vscode.Uri.parse(`${fileSystem.scheme}:/${accountId}`));
 
@@ -21,6 +21,8 @@ export const openAccountWidgets = async (fileSystem: SocialFS, accountId?: strin
       overwrite: false,
       create: true
     });
+
+    vscode.window.showInformationMessage(`Finished`);
 
   } else {
     vscode.window.showErrorMessage('Invalid Account ID');

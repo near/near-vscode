@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { APP_NAME } from '../util';
+import { APP_NAME } from '../config';
 
 export const loginAccount = async (context: vscode.ExtensionContext, network: string) => {
   const publisher = context.extension.packageJSON.publisher;

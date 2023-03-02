@@ -1,18 +1,18 @@
 {
-  "name": "near",
-  "displayName": "NEAR IDE",
+  "name": "near-social-ide",
+  "displayName": "NEAR Social",
   "description": "VSCode extension for NEAR",
-  "version": "0.1.0",
-  "publisher": "maxistyping",
-  "icon": "media/near-dark.png",
-  "homepage": "https://github.com/maxhr/near-vscode",
+  "version": "1.0.4",
+  "publisher": "near-protocol",
+  "icon": "media/social-logo.png",
+  "homepage": "https://github.com/near/near-vscode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/maxhr/near-vscode"
+    "url": "https://github.com/near/near-vscode"
   },
   "bugs": {
-    "url": "https://github.com/maxhr/near-vscode/issues",
-    "email": "max@maxistyping.com"
+    "url": "https://github.com/near/near-vscode/issues",
+    "email": "devrel-ops@near.org"
   },
   "engines": {
     "vscode": "^1.74.0"
@@ -21,7 +21,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:near.openWidgetsFromAccount",
     "onFileSystem:near",
     "onWebviewPanel:viewType"
   ],
@@ -39,6 +38,11 @@
         "category": "NEAR.social"
       },
       {
+        "command": "near.chooseLocalPath",
+        "title": "Choose Widget Folder",
+        "category": "NEAR.social"
+      },
+      {
         "command": "near.publishWidget",
         "title": "Publish Widget",
         "category": "NEAR.social",
@@ -47,24 +51,10 @@
       },
       {
         "command": "near.showWidgetPreview",
-        "title": "Show Widget preview",
+        "title": "Show Widget Preview",
         "category": "NEAR.social",
         "enablement": "resourceScheme == near",
-        "icon": "$(open-preview)"
-      },
-      {
-        "command": "near.reloadWidgetPreview",
-        "title": "Reload preview",
-        "enablement": "activeWebviewPanelId == 'WidgetPreview'",
-        "category": "NEAR.social",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "near.focusActivePreviewSource",
-        "title": "Show source",
-        "category": "NEAR.social",
-        "enablement": "activeWebviewPanelId == 'WidgetPreview'",
-        "icon": "$(go-to-file)"
+        "icon": "$(preview)"
       }
     ],
     "resourceLabelFormatters": [
@@ -80,21 +70,29 @@
     ],
     "viewsWelcome": [
       {
-        "view": "explorer",
-        "contents": "You can inspect widgets on NEAR.social.",
-        "when": "workbenchState == empty"
+        "view": "near-social",
+        "contents": "[Choose your working folder](command:near.chooseLocalPath)",
+        "when": "resourceScheme != near"
       },
       {
-        "view": "explorer",
-        "contents": "[Login to NEAR.social with your account](command:near.openWidgetsFromAccount)",
-        "when": "false && workbenchState == empty"
+        "view": "near-social",
+        "contents": "[Login & Fetch Widgets](command:near.login)",
+        "when": "resourceScheme == near"
       },
       {
-        "view": "explorer",
-        "contents": "[View NEAR.social account](command:near.openWidgetsFromAccount)",
-        "when": "workbenchState == empty"
+        "view": "near-social",
+        "contents": "[Fetch Account Widgets](command:near.openWidgetsFromAccount)",
+        "when": "resourceScheme == near"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "near-social",
+          "name": "NEAR Social"
+        }
+      ]
+    },
     "menus": {
       "editor/title": [
         {
@@ -106,16 +104,6 @@
           "when": "resourceScheme == near",
           "command": "near.publishWidget",
           "group": "navigation"
-        },
-        {
-          "command": "near.reloadWidgetPreview",
-          "when": "activeWebviewPanelId == 'WidgetPreview'",
-          "group": "navigation"
-        },
-        {
-          "command": "near.focusActivePreviewSource",
-          "when": "activeWebviewPanelId == 'WidgetPreview'",
-          "group": "navigation"
         }
       ],
       "commandPalette": [
@@ -126,12 +114,12 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
-    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run -S esbuild-base -- --minify",
+    "esbuild-base": "rimraf out && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "build": "npm run -S esbuild-base -- --sourcemap",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "fmt": "prettier --write \"src/**/*.ts\"&& npm run test -- --fix",
+    "test": "eslint src --ext ts && tsc --noEmit"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.1",
@@ -142,6 +130,7 @@
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "@vscode/test-electron": "^2.2.0",
+    "esbuild": "^0.17.10",
     "eslint": "^8.28.0",
     "glob": "^8.0.3",
     "mocha": "^10.1.0",

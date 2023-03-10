@@ -1,10 +1,10 @@
 {
-  "name": "near-social-ide",
-  "displayName": "NEAR Social",
+  "name": "near-discovery-ide",
+  "displayName": "NEAR Discovery",
   "description": "VSCode extension for NEAR",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "publisher": "near-protocol",
-  "icon": "media/social-logo.png",
+  "icon": "readme/near-protocol-near-logo.png",
   "homepage": "https://github.com/near/near-vscode",
   "repository": {
     "type": "git",
@@ -30,29 +30,29 @@
       {
         "command": "near.login",
         "title": "Login",
-        "category": "NEAR.social"
+        "category": "NEAR.discovery"
       },
       {
         "command": "near.openWidgetsFromAccount",
         "title": "View account in workspace",
-        "category": "NEAR.social"
+        "category": "NEAR.discovery"
       },
       {
         "command": "near.chooseLocalPath",
         "title": "Choose Widget Folder",
-        "category": "NEAR.social"
+        "category": "NEAR.discovery"
       },
       {
         "command": "near.publishWidget",
         "title": "Publish Widget",
-        "category": "NEAR.social",
+        "category": "NEAR.discovery",
         "enablement": "resourceScheme == near",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "near.showWidgetPreview",
         "title": "Show Widget Preview",
-        "category": "NEAR.social",
+        "category": "NEAR.discovery",
         "enablement": "resourceScheme == near",
         "icon": "$(preview)"
       }
@@ -70,17 +70,17 @@
     ],
     "viewsWelcome": [
       {
-        "view": "near-social",
+        "view": "near-discovery",
         "contents": "[Choose your working folder](command:near.chooseLocalPath)",
         "when": "resourceScheme != near"
       },
       {
-        "view": "near-social",
+        "view": "near-discovery",
         "contents": "[Login & Fetch Widgets](command:near.login)",
         "when": "resourceScheme == near"
       },
       {
-        "view": "near-social",
+        "view": "near-discovery",
         "contents": "[Fetch Account Widgets](command:near.openWidgetsFromAccount)",
         "when": "resourceScheme == near"
       }
@@ -88,8 +88,8 @@
     "views": {
       "explorer": [
         {
-          "id": "near-social",
-          "name": "NEAR Social"
+          "id": "near-discovery",
+          "name": "Near Discovery"
         }
       ]
     },
@@ -117,6 +117,7 @@
     "vscode:prepublish": "npm run -S esbuild-base -- --minify",
     "esbuild-base": "rimraf out && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "build": "npm run -S esbuild-base -- --sourcemap",
+    "build:webview": "cd webview && node ./build-non-split.js",
     "watch": "tsc -watch -p ./",
     "fmt": "prettier --write \"src/**/*.ts\"&& npm run test -- --fix",
     "test": "eslint src --ext ts && tsc --noEmit"
@@ -126,6 +127,7 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/react-dom": "^18.0.11",
     "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
@@ -134,11 +136,15 @@
     "eslint": "^8.28.0",
     "glob": "^8.0.3",
     "mocha": "^10.1.0",
-    "typescript": "^4.9.3"
+    "react-dom": "^18.2.0",
+    "typescript": "^4.9.3",
+    "rewire": "^6.0.0",
+    "react-scripts": "^5.0.1"
   },
   "dependencies": {
     "@types/lodash": "^4.14.191",
     "lodash": "^4.17.21",
-    "near-api-js": "^1.1.0"
+    "near-api-js": "^1.1.0",
+    "react": "^18.2.0"
   }
 }

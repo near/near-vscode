@@ -21,10 +21,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Preview Widget
   const previewPanel = new WidgetPreviewPanel(context, socialFS);
+  const log = vscode.window.createOutputChannel("Widget");
 
   context.subscriptions.push(
     vscode.commands.registerCommand("near.showWidgetPreview", () => {
-      previewPanel.createAndShowPanel();
+      previewPanel.createAndShowPanel(log);
       previewPanel.showActiveCode();
     })
   );

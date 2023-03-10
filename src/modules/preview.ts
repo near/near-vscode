@@ -15,7 +15,7 @@ export class WidgetPreviewPanel {
     this.fileSystem = fileSystem;
   }
 
-  private createNewPanel(){
+  private createNewPanel(log: vscode.OutputChannel) {
     this.panel = vscode.window.createWebviewPanel(
       "WidgetPreview",
       "Widget Preview",
@@ -23,21 +23,33 @@ export class WidgetPreviewPanel {
         viewColumn: vscode.ViewColumn.Beside,
         preserveFocus: true,
       },
-      getWebviewOptions(this.context.extensionUri)
+      {
+        enableScripts: true,   // Enable javascript in the webview
+        localResourceRoots: [  // restrict which content the webview can load
+          vscode.Uri.joinPath(this.context.extensionUri, "webview/dist")
+        ],
+      }
     );
 
-    const isDark = vscode.ColorThemeKind.Dark === vscode.window.activeColorTheme.kind;
-    this.panel!.iconPath = vscode.Uri.joinPath(
-      this.context.extensionUri,
-      "media",
-      isDark ? "near-dark.png" : "near-light.png"
-    );
+    this.panel!.onDidDispose((e) => { this.visible = false; });
 
-    this.panel!.onDidDispose((e) => {this.visible = false;});
+
+    this.panel.webview.onDidReceiveMessage(
+      message => {
+        switch (message.command) {
+          case 'console.log':
+            const msgs = message.data.map((arg: any) => JSON.stringify(arg));
+            // drop first message
+            msgs.shift();
+            log.appendLine(`> ${msgs.join(' ')}`);
+            return;
+        }
+      },
+    );
   }
 
-  public createAndShowPanel() {
-    if(!this.visible){ this.createNewPanel(); }
+  public createAndShowPanel(log: vscode.OutputChannel) {
+    if (!this.visible) { this.createNewPanel(log); }
 
     this.visible = true;
     setHtmlForWebview(this.context, this.panel!);
@@ -45,7 +57,7 @@ export class WidgetPreviewPanel {
 
   public async showActiveCode(forceUpdate = false) {
     let code = vscode.window.activeTextEditor?.document?.getText() || "";
-    
+
     let data = await this.fileSystem.readFile(vscode.Uri.parse(`${this.fileSystem.scheme}:/props.json`));
     let strData = data?.toString() || "{}";
     let props = JSON.parse(strData);
@@ -64,54 +76,22 @@ const setHtmlForWebview = (
   context: vscode.ExtensionContext,
   panel: vscode.WebviewPanel
 ) => {
+  // Get index.html and replace relative resource paths with the vscode relative ones
+  const filePath: vscode.Uri = vscode.Uri.file(
+    path.join(context.extensionPath, "webview/dist", "index.html")
+  );
+  let html = fs.readFileSync(filePath.fsPath, "utf8");
+
   const webview = panel.webview;
-  const scriptPathOnDisk = vscode.Uri.joinPath(
-    context.extensionUri,
-    "media",
-    "main.js"
-  );
-  const styleResetPath = vscode.Uri.joinPath(
-    context.extensionUri,
-    "media",
-    "reset.css"
-  );
-  const stylesPathMainPath = vscode.Uri.joinPath(
-    context.extensionUri,
-    "media",
-    "vscode.css"
-  );
-  const html = getPanelHtmlFileContent(context)
-    .replaceAll("{{cspSource}}", webview.cspSource)
-    .replace(
-      "{{stylesResetUri}}",
-      webview.asWebviewUri(styleResetPath).toString()
-    )
-    .replace(
-      "{{stylesMainUri}}",
-      webview.asWebviewUri(stylesPathMainPath).toString()
-    )
-    .replace(
-      "{{scriptUri}}",
-      webview.asWebviewUri(scriptPathOnDisk).toString()
+  const manifest = require(vscode.Uri.joinPath(context.extensionUri, 'webview/dist', 'manifest.json').path);
+
+  // manifest is a dictionary {filename: hash-filename}
+  for (const key in manifest) {
+    const webviewPath = vscode.Uri.joinPath(context.extensionUri, "webview/dist", manifest[key]);
+    html = html.replace(
+      manifest[key],
+      webview.asWebviewUri(webviewPath).toString()
     );
+  }
   webview.html = html;
 };
-
-const getPanelHtmlFileContent = (context: vscode.ExtensionContext): string => {
-  const filePath: vscode.Uri = vscode.Uri.file(
-    path.join(context.extensionPath, "media", "panel.html")
-  );
-  return fs.readFileSync(filePath.fsPath, "utf8");
-};
-
-export function getWebviewOptions(
-  extensionUri: vscode.Uri
-): vscode.WebviewOptions {
-  return {
-    // Enable javascript in the webview
-    enableScripts: true,
-
-    // And restrict the webview to only loading content from our extension's `media` directory.
-    localResourceRoots: [vscode.Uri.joinPath(extensionUri, "media")],
-  };
-}

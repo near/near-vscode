@@ -5,7 +5,7 @@ import { publishCode } from "./commands/publish";
 import { handleTransactionCallback } from "./commands/callbacks";
 import { SocialFS } from "./modules/file-system/fs";
 import { WidgetPreviewPanel } from "./modules/preview";
-import { chooseLocalPath, populateFS } from "./commands/init-fs";
+import { chooseLocalPath } from "./commands/init-fs";
 
 export function activate(context: vscode.ExtensionContext) {
   const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');  
@@ -16,7 +16,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   // File System
   let socialFS = new SocialFS(localWorkspace);
-  if (localWorkspace) { populateFS(socialFS, localWorkspace); }
   context.subscriptions.push(vscode.workspace.registerFileSystemProvider(socialFS.scheme, socialFS, { isCaseSensitive: true }));
 
   // Preview Widget

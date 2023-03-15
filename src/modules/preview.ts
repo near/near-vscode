@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { WIDGET_EXT } from "../config";
 import { SocialFS } from "./file-system/fs";
 
 export class WidgetPreviewPanel {
@@ -58,14 +59,28 @@ export class WidgetPreviewPanel {
   public async showActiveCode(forceUpdate = false) {
     let code = vscode.window.activeTextEditor?.document?.getText() || "";
 
+    // Get props
     let data = await this.fileSystem.readFile(vscode.Uri.parse(`${this.fileSystem.scheme}:/props.json`));
     let strData = data?.toString() || "{}";
     let props = JSON.parse(strData);
+
+    // Get local widgets code
+    let redirectMap: { [key:string]:{[key:string]: string}; } = {};
+    for(const uri of this.fileSystem.localFiles) {
+      if (uri.path.endsWith('props.json')) { continue; }
+
+      const fcode = await this.fileSystem.readFile(uri);
+      const socialPath = uriToSocialPath(uri);
+      redirectMap[socialPath] = {"code": fcode.toString()};
+    };
+
+    console.log("config", {redirectMap});
 
     this.panel?.webview.postMessage({
       command: "update-code",
       code: code,
       props,
+      config: {redirectMap},
       forceUpdate,
       widgetUri: "",
     });
@@ -95,3 +110,9 @@ const setHtmlForWebview = (
   }
   webview.html = html;
 };
+
+// Aux
+function uriToSocialPath(uri: vscode.Uri): string {
+  const [_, accountId, widgetName] = uri.path.split('/');
+  return `${accountId}/widget/${widgetName.replace(WIDGET_EXT, '')}`;
+}

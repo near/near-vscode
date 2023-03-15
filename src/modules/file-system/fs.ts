@@ -1,6 +1,7 @@
-import * as vscode from "vscode";
-import * as path from 'path';
 import * as fs from 'fs';
+import * as glob from "glob";
+import * as path from 'path';
+import * as vscode from "vscode";
 
 import {
   SOCIAL_FS_SCHEME, WIDGET_EXT
@@ -12,9 +13,29 @@ export class SocialFS implements vscode.FileSystemProvider {
   scheme = SOCIAL_FS_SCHEME;
   root = new Directory(`${this.scheme}:/`);
   localStoragePath: string | undefined;
+  localFiles: vscode.Uri[] = [];
 
-  constructor(localPathStorage?: string) {
-    this.localStoragePath = localPathStorage;
+  constructor(localStoragePath?: string) {
+    this.localStoragePath = localStoragePath;
+
+    if (localStoragePath === undefined) { return; }
+
+    // Add all local files and folders from the selected dir
+    // > TODO: Check their correctness, now we assume they are users/widgets
+    const allWidgets = glob.sync(`**/*.jsx`, { cwd: localStoragePath });
+
+    for (const widget of allWidgets) {
+      const [dir, file] = widget.split('/');
+      this.createDirectory(vscode.Uri.parse(`${this.scheme}:/${dir}`));
+      this.addReference(vscode.Uri.parse(`${this.scheme}:/${dir}/${file}`), path.join(localStoragePath, widget));
+    }
+
+    if (allWidgets.length > 0) {
+      // TODO: Handle the case where props.json does not exist
+      this.addReference(vscode.Uri.parse(`${this.scheme}:/props.json`), path.join(localStoragePath, 'props.json'));
+    }
+
+
   }
 
   async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
@@ -33,7 +54,7 @@ export class SocialFS implements vscode.FileSystemProvider {
   async readFile(uri: vscode.Uri): Promise<Uint8Array> {
     const file = this._lookupAsFile(uri, false);
     let code: string = "";
-    
+
     if (file.localPath) {
       // read the local file
       code = fs.readFileSync(file.localPath, 'utf8');
@@ -50,7 +71,7 @@ export class SocialFS implements vscode.FileSystemProvider {
     const parent = this._lookupAsDirectory(dirname, false);
 
     // By default, if the folder exists we do nothing
-    if(parent.entries.has(basename)){ return; }
+    if (parent.entries.has(basename)) { return; }
 
     const entry = new Directory(basename);
     parent.entries.set(entry.name, entry);
@@ -68,7 +89,7 @@ export class SocialFS implements vscode.FileSystemProvider {
     const parent = this._lookupParentDirectory(uri);
     let entry = parent.entries.get(basename);
 
-    if(!this.localStoragePath){
+    if (!this.localStoragePath) {
       throw new Error("No local storage path");
     }
 
@@ -78,9 +99,9 @@ export class SocialFS implements vscode.FileSystemProvider {
     if (!entry && !options.create) {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
-		if (entry && options.create && !options.overwrite) {
-			throw vscode.FileSystemError.FileExists(uri);
-		}
+    if (entry && options.create && !options.overwrite) {
+      throw vscode.FileSystemError.FileExists(uri);
+    }
 
     if (!entry) {
       entry = new File(basename);
@@ -104,6 +125,7 @@ export class SocialFS implements vscode.FileSystemProvider {
     fs.writeFileSync(fd, content);
     fs.closeSync(fd);
 
+    this.localFiles.push(uri);
     this._fireSoon({ type: vscode.FileChangeType.Changed, uri });
   }
 
@@ -111,19 +133,21 @@ export class SocialFS implements vscode.FileSystemProvider {
     uri: vscode.Uri,
     localPath?: string
   ): void {
+    // Add reference to a local file
     const basename = path.posix.basename(uri.path);
     const parent = this._lookupParentDirectory(uri);
     let entry = parent.entries.get(basename);
-    
+
     if (entry instanceof Directory) {
       throw vscode.FileSystemError.FileIsADirectory(uri);
     }
 
     // By default, if a reference exists we do nothing
-    if(entry){return;}
+    if (entry) { return; }
 
     entry = new File(basename, localPath);
     parent.entries.set(basename, entry);
+    if (localPath) { this.localFiles.push(uri) };
     this._fireSoon({ type: vscode.FileChangeType.Created, uri });
   }
 

@@ -20,7 +20,7 @@ import { NetworkId, Widgets } from "./data/widgets";
 
 export const refreshAllowanceObj = {};
 
-function App(props) {
+function App({code, wProps, config}) {
   const [connected, setConnected] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [signedAccountId, setSignedAccountId] = useState(null);
@@ -123,17 +123,10 @@ function App(props) {
     );
   }, [account]);
 
-  const passProps = {
-    refreshAllowance: () => refreshAllowance(),
-    setWidgetSrc,
-    widgetSrc,
-    widgets: Widgets,
-  };
-
   return (
     <div className="App">
       <Router basename={process.env.PUBLIC_URL}>
-        <EmbedPage {...passProps} />
+        <EmbedPage code={code} wProps={wProps} config={config} />
       </Router>
     </div>
   );

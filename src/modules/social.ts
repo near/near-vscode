@@ -32,13 +32,13 @@ export const getWidgetCode = async (accountId: AccountId, widgetName: string): P
   };
 };
 
-export const  transactionForPublishingCode = async (accountId: AccountId, widgetName: string, code: string): Promise<string> => {
+export const transactionForPublishingCode = async (accountId: AccountId, widgetName: string, code: string): Promise<string> => {
   // Data to store
   const update = `{"${accountId}": {"widget": {"${widgetName}": {"": ${JSON.stringify(code)}}}}}`;
-  const data = {data: JSON.parse(update)};
+  const data = { data: JSON.parse(update) };
 
   // To create a transaction, we need to fill the `publicKey` field, but that field is not used later
-  const keyPair =  naj.utils.KeyPairEd25519.fromRandom();
+  const keyPair = naj.utils.KeyPairEd25519.fromRandom();
   const publicKey = keyPair.getPublicKey();
 
   // To create a transaction we need a recent block
@@ -52,7 +52,7 @@ export const  transactionForPublishingCode = async (accountId: AccountId, widget
   // Create the transaction
   const actions = [transactions.functionCall('set', data, TGAS30, amount)];
   const transaction = transactions.createTransaction(accountId, publicKey, SOCIAL_CONTRACT_ACCOUNT, 0, actions, blockHash);
-  
+
   //@ts-ignore
   return transaction.encode().toString('base64');
 };
@@ -78,22 +78,22 @@ export const socialViewMethod = async (methodName: String, args: any): Promise<a
 
 export const getTransactionStatus = async (txhash: string): Promise<TxStatus> => {
 
-    // Retrieve transaction result from the network
-    const transaction = await provider.txStatus(txhash, 'unnused');
-    
-    let status = new TxStatus();
-    console.log(transaction.status as object)
-    status.succeeded = Object.hasOwn(transaction.status as object, "SuccessValue");
+  // Retrieve transaction result from the network
+  const transaction = await provider.txStatus(txhash, 'unnused');
 
-    if(!status.succeeded){
-      //@ts-ignore
-      const {Failure:{ActionError: {kind: {FunctionCallError: {ExecutionError: errorMessage}}}}} = transaction.status;
-      status.error = errorMessage;
-    }
-    return status;
+  let status = new TxStatus();
+  console.log(transaction.status as object)
+  status.succeeded = Object.hasOwn(transaction.status as object, "SuccessValue");
+
+  if (!status.succeeded) {
+    //@ts-ignore
+    const { Failure: { ActionError: { kind: { FunctionCallError: { ExecutionError: errorMessage } } } } } = transaction.status;
+    status.error = errorMessage;
+  }
+  return status;
 };
 
-class TxStatus{
+class TxStatus {
   succeeded: boolean = false;
   error: string = "";
 }

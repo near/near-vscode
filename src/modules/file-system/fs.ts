@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as vscode from "vscode";
 
 import {
-  SOCIAL_FS_SCHEME, WIDGET_EXT
+  SOCIAL_FS_SCHEME, WIDGET_EXT, defaultContext
 } from "../../config";
 import * as social from "../social";
 import { Directory, File, Entry } from "./model";
@@ -30,12 +30,19 @@ export class SocialFS implements vscode.FileSystemProvider {
       this.addReference(vscode.Uri.parse(`${this.scheme}:/${dir}/${file}`), path.join(localStoragePath, widget));
     }
 
-    if (allWidgets.length > 0) {
-      // TODO: Handle the case where props.json does not exist
-      this.addReference(vscode.Uri.parse(`${this.scheme}:/props.json`), path.join(localStoragePath, 'props.json'));
+    const jsonFiles = ["props.json", "context.json"];
+    const defaultValue = ["{}", JSON.stringify(defaultContext)];
+
+    for (const idx in jsonFiles) {
+      if (fs.existsSync(path.join(localStoragePath, jsonFiles[idx]))) {
+        this.addReference(vscode.Uri.parse(`${this.scheme}:/${jsonFiles[idx]}`), path.join(localStoragePath, jsonFiles[idx]));
+      } else {
+        this.writeFile(vscode.Uri.parse(`${this.scheme}:/${jsonFiles[idx]}`), Buffer.from(defaultValue[idx]), {
+          overwrite: false,
+          create: true
+        });
+      }
     }
-
-
   }
 
   async stat(uri: vscode.Uri): Promise<vscode.FileStat> {

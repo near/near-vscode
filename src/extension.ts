@@ -4,11 +4,12 @@ import { loginAccount } from "./commands/login";
 import { publishCode } from "./commands/publish";
 import { handleTransactionCallback } from "./commands/callbacks";
 import { SocialFS } from "./modules/file-system/fs";
-import { WidgetPreviewPanel } from "./modules/preview";
+import { WidgetPreviewPanel } from "./modules/preview-panel";
 import { chooseLocalPath } from "./commands/init-fs";
+import { preview } from "./commands/preview";
 
 export function activate(context: vscode.ExtensionContext) {
-  const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');  
+  const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');
   const openAccount: string | undefined = context.workspaceState.get('openAccount');
 
   context.workspaceState.update('localStoragePath', undefined);
@@ -23,10 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
   const log = vscode.window.createOutputChannel("Widget");
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("near.showWidgetPreview", () => {
-      previewPanel.createAndShowPanel(log);
-      previewPanel.showActiveCode();
-    })
+    vscode.commands.registerCommand("near.showWidgetPreview", () => { preview(previewPanel, log); })
   );
 
   context.subscriptions.push(
@@ -42,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  if(openAccount){
+  if (openAccount) {
     vscode.commands.executeCommand("near.openWidgetsFromAccount", openAccount);
   }
 

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { defaultContext } from '../config';
 import { SocialFS } from '../modules/file-system/fs';
 import * as social from '../modules/social';
 
@@ -22,8 +23,11 @@ export const openAccountWidgets = async (fileSystem: SocialFS, accountId?: strin
       create: true
     });
 
-    vscode.window.showInformationMessage(`Finished`);
-
+    // Add a config.json file if it does not exist
+    fileSystem.writeFile(vscode.Uri.parse(`${fileSystem.scheme}:/context.json`), Buffer.from(JSON.stringify(defaultContext)), {
+      overwrite: false,
+      create: true
+    });   
   } else {
     vscode.window.showErrorMessage('Invalid Account ID');
   }

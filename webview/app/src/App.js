@@ -20,7 +20,7 @@ import { NetworkId, Widgets } from "./data/widgets";
 
 export const refreshAllowanceObj = {};
 
-function App({code, wProps, config}) {
+function App({code, wProps, config, vsContext}) {
   const [connected, setConnected] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [signedAccountId, setSignedAccountId] = useState(null);
@@ -31,7 +31,7 @@ function App({code, wProps, config}) {
   const { initNear } = useInitNear();
   const near = useNear();
   const account = useAccount();
-  const accountId = account.accountId;
+  const accountId = vsContext.accountId || account.accountId;
 
   const location = window.location;
 
@@ -107,9 +107,6 @@ function App({code, wProps, config}) {
   refreshAllowanceObj.refreshAllowance = refreshAllowance;
 
   useEffect(() => {
-    if (!near) {
-      return;
-    }
     setSignedIn(!!accountId);
     setSignedAccountId(accountId);
     setConnected(true);
@@ -123,10 +120,22 @@ function App({code, wProps, config}) {
     );
   }, [account]);
 
+  const viewerProps = {
+    refreshAllowance: () => refreshAllowance(),
+    setWidgetSrc,
+    signedAccountId,
+    signedIn,
+    connected,
+    availableStorage,
+    widgetSrc,
+    logOut,
+    requestSignIn,
+  };
+
   return (
     <div className="App">
       <Router basename={process.env.PUBLIC_URL}>
-        <EmbedPage code={code} wProps={wProps} config={config} />
+        <EmbedPage code={code} wProps={wProps} config={config} vsContext={vsContext} viewerProps={viewerProps} />
       </Router>
     </div>
   );

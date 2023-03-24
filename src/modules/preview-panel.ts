@@ -34,7 +34,6 @@ export class WidgetPreviewPanel {
 
     this.panel!.onDidDispose((e) => { this.visible = false; });
 
-
     this.panel.webview.onDidReceiveMessage(
       message => {
         switch (message.command) {
@@ -51,65 +50,59 @@ export class WidgetPreviewPanel {
 
   public createAndShowPanel(log: vscode.OutputChannel) {
     if (!this.visible) { this.createNewPanel(log); }
-
     this.visible = true;
-    setHtmlForWebview(this.context, this.panel!);
-  }
+    
+    // Get index.html and replace relative resource paths with the vscode relative ones
+    const filePath: vscode.Uri = vscode.Uri.file(
+      path.join(this.context.extensionPath, "webview/dist", "index.html")
+    );
+    let html = fs.readFileSync(filePath.fsPath, "utf8");
+  
+    const manifest = require(vscode.Uri.joinPath(this.context.extensionUri, 'webview/dist', 'manifest.json').path);
+  
+    // manifest is a dictionary {filename: hash-filename}
+    for (const key in manifest) {
+      const webviewPath = vscode.Uri.joinPath(this.context.extensionUri, "webview/dist", manifest[key]);
+      html = html.replace(
+        manifest[key],
+        this.panel!.webview.asWebviewUri(webviewPath).toString()
+      );
+    }
+    this.panel!.webview.html = html;
+  };
 
   public async showActiveCode(forceUpdate = false) {
     let code = vscode.window.activeTextEditor?.document?.getText() || "";
 
     // Get props
     let data = await this.fileSystem.readFile(vscode.Uri.parse(`${this.fileSystem.scheme}:/props.json`));
-    let strData = data?.toString() || "{}";
-    let props = JSON.parse(strData);
+    let props = JSON.parse(data?.toString() || "{}");
 
+    // Get config
+    data = await this.fileSystem.readFile(vscode.Uri.parse(`${this.fileSystem.scheme}:/context.json`));
+    let context = JSON.parse(data?.toString() || "{}");
+    
     // Get local widgets code
-    let redirectMap: { [key:string]:{[key:string]: string}; } = {};
-    for(const uri of this.fileSystem.localFiles) {
-      if (uri.path.endsWith('props.json')) { continue; }
+    let redirectMap: { [key: string]: { [key: string]: string }; } = {};
+    for (const uri of this.fileSystem.localFiles) {
+      if (uri.path.endsWith('.json')) { continue; }
 
       const fcode = await this.fileSystem.readFile(uri);
       const socialPath = uriToSocialPath(uri);
-      redirectMap[socialPath] = {"code": fcode.toString()};
+      redirectMap[socialPath] = { "code": fcode.toString() };
     };
-
-    console.log("config", {redirectMap});
 
     this.panel?.webview.postMessage({
       command: "update-code",
       code: code,
       props,
-      config: {redirectMap},
+      config: { redirectMap },
+      context,
       forceUpdate,
       widgetUri: "",
     });
   }
 }
-
-const setHtmlForWebview = (
-  context: vscode.ExtensionContext,
-  panel: vscode.WebviewPanel
-) => {
-  // Get index.html and replace relative resource paths with the vscode relative ones
-  const filePath: vscode.Uri = vscode.Uri.file(
-    path.join(context.extensionPath, "webview/dist", "index.html")
-  );
-  let html = fs.readFileSync(filePath.fsPath, "utf8");
-
-  const webview = panel.webview;
-  const manifest = require(vscode.Uri.joinPath(context.extensionUri, 'webview/dist', 'manifest.json').path);
-
-  // manifest is a dictionary {filename: hash-filename}
-  for (const key in manifest) {
-    const webviewPath = vscode.Uri.joinPath(context.extensionUri, "webview/dist", manifest[key]);
-    html = html.replace(
-      manifest[key],
-      webview.asWebviewUri(webviewPath).toString()
-    );
-  }
-  webview.html = html;
-};
 
 // Aux
 function uriToSocialPath(uri: vscode.Uri): string {

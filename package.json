@@ -2,7 +2,7 @@
   "name": "near-discovery-ide",
   "displayName": "NEAR Discovery",
   "description": "Build a decentralized frontend in minutes. Known before as NEAR Social",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "publisher": "near-protocol",
   "icon": "readme/near-protocol-near-logo.png",
   "homepage": "https://github.com/near/near-vscode",

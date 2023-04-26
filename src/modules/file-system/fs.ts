@@ -158,6 +158,13 @@ export class SocialFS implements vscode.FileSystemProvider {
     this._fireSoon({ type: vscode.FileChangeType.Created, uri });
   }
 
+  async addToContext(key: string, value: string){
+      // add key to context
+    let data = await this.readFile(vscode.Uri.parse(`${this.scheme}:/context.json`));
+    let contextData = JSON.parse(data?.toString() || "{}");
+    contextData[key] = value;
+    await this.writeFile(vscode.Uri.parse(`${this.scheme}:/context.json`), Buffer.from(JSON.stringify(contextData, null, 2)), { create: true, overwrite: true });
+  }
 
   // --- manage files/folders
 

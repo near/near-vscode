@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Login
   context.subscriptions.push(
     vscode.commands.registerCommand("near.login", () =>
-      loginAccount(context, 'mainnet')
+      loginAccount(context, 'mainnet', socialFS)
     )
   );
 
@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Callback
   context.subscriptions.push(
     vscode.window.registerUriHandler({
-      handleUri: (uri) => handleTransactionCallback(uri, context, localWorkspace)
+      handleUri: (uri) => handleTransactionCallback(uri, context, localWorkspace, socialFS)
     })
   );
 }

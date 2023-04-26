@@ -8,6 +8,6 @@ export const COST_PER_BYTE = new BN("10000000000000000000");
 export const TGAS30 = new BN("30"+"0".repeat(12));
 
 export const defaultContext = {
-    wrapperSrc: "adminalpha.near/widget/DS.Theme",
+    wrapperSrc: "near/widget/DIG.Theme",
     wrapperProps: {}
 };

@@ -2,7 +2,7 @@
   "name": "near-discovery-ide",
   "displayName": "NEAR BOS IDE",
   "description": "Build a decentralized frontend in minutes. Known before as NEAR Social",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "publisher": "near-protocol",
   "icon": "readme/near-protocol-near-logo.png",
   "homepage": "https://github.com/near/near-vscode",
@@ -89,7 +89,7 @@
       "explorer": [
         {
           "id": "near-discovery",
-          "name": "Near Discovery"
+          "name": "Near BOS"
         }
       ]
     },

@@ -84,7 +84,7 @@ export class WidgetPreviewPanel {
     
     // Get local widgets code
     let redirectMap: { [key: string]: { [key: string]: string }; } = {};
-    for (const uri of this.fileSystem.localFiles) {
+    for (const uri of this.fileSystem.localFiles()) {
       if (uri.path.endsWith('.json')) { continue; }
 
       const fcode = await this.fileSystem.readFile(uri);
@@ -106,6 +106,6 @@ export class WidgetPreviewPanel {
 
 // Aux
 function uriToSocialPath(uri: vscode.Uri): string {
-  const [_, accountId, widgetName] = uri.path.split('/');
-  return `${accountId}/widget/${widgetName.replace(WIDGET_EXT, '')}`;
+  const [_, accountId, ...widgetName] = uri.path.split('/');
+  return `${accountId}/widget/${widgetName.join('.').replace(WIDGET_EXT, '')}`;
 }

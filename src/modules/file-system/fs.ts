@@ -3,17 +3,14 @@ import * as glob from "glob";
 import * as path from 'path';
 import * as vscode from "vscode";
 
-import {
-  SOCIAL_FS_SCHEME, WIDGET_EXT, defaultContext
-} from "../../config";
 import * as social from "../social";
 import { Directory, File, Entry } from "./model";
+import { SOCIAL_FS_SCHEME, WIDGET_EXT, defaultContext } from "../../config";
 
 export class SocialFS implements vscode.FileSystemProvider {
   scheme = SOCIAL_FS_SCHEME;
   root = new Directory(`${this.scheme}:/`);
   localStoragePath: string | undefined;
-  localFiles: vscode.Uri[] = [];
 
   constructor(localStoragePath?: string) {
     this.localStoragePath = localStoragePath;
@@ -21,12 +18,18 @@ export class SocialFS implements vscode.FileSystemProvider {
     if (localStoragePath === undefined) { return; }
 
     // Add all local files and folders from the selected dir
-    // > TODO: Check their correctness, now we assume they are users/widgets
     const allWidgets = glob.sync(`**/*.jsx`, { cwd: localStoragePath });
 
     for (const widget of allWidgets) {
-      const [dir, file] = widget.split('/');
+      let [dir, ...file] = widget.split('/');
       this.createDirectory(vscode.Uri.parse(`${this.scheme}:/${dir}`));
+
+      while (file.length > 1) {
+        dir = path.join(dir, file[0]);
+        file = file.slice(1);
+        this.createDirectory(vscode.Uri.parse(`${this.scheme}:/${dir}`));
+      }
+
       this.addReference(vscode.Uri.parse(`${this.scheme}:/${dir}/${file}`), path.join(localStoragePath, widget));
     }
 
@@ -35,14 +38,35 @@ export class SocialFS implements vscode.FileSystemProvider {
 
     for (const idx in jsonFiles) {
       if (fs.existsSync(path.join(localStoragePath, jsonFiles[idx]))) {
-        this.addReference(vscode.Uri.parse(`${this.scheme}:/${jsonFiles[idx]}`), path.join(localStoragePath, jsonFiles[idx]));
+        this.addReference(
+          vscode.Uri.parse(`${this.scheme}:/${jsonFiles[idx]}`),
+          path.join(localStoragePath, jsonFiles[idx])
+        );
       } else {
-        this.writeFile(vscode.Uri.parse(`${this.scheme}:/${jsonFiles[idx]}`), Buffer.from(defaultValue[idx]), {
-          overwrite: false,
-          create: true
-        });
+        this.writeFile(
+          vscode.Uri.parse(`${this.scheme}:/${jsonFiles[idx]}`),
+          Buffer.from(defaultValue[idx]),
+          { overwrite: false, create: true });
       }
     }
+  }
+
+  localFiles(): vscode.Uri[] {
+    // Get all local files
+    let files: vscode.Uri[] = [];
+
+    for (const [name, child] of this.root.entries) {
+      if (child instanceof Directory) {
+        // get all files from this directory
+        const allWidgets = glob.sync(`**/*.jsx`, { cwd: path.join(this.localStoragePath!, name) });
+
+        for (const widget of allWidgets) {
+          files.push(vscode.Uri.parse(`${this.scheme}:/${name}/${widget}`));
+        }
+      }
+    }
+
+    return files;
   }
 
   async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
@@ -66,8 +90,8 @@ export class SocialFS implements vscode.FileSystemProvider {
       // read the local file
       code = fs.readFileSync(file.localPath, 'utf8');
     } else {
-      const [_, accountId, widgetName] = uri.path.split('/');
-      code = await social.getWidgetCode(accountId, widgetName.replace(WIDGET_EXT, ''));
+      const [_, accountId, ...wPath] = uri.path.split('/');
+      code = await social.getWidgetCode(accountId, wPath.join('.').replace(WIDGET_EXT, ''));
     }
     return Buffer.from(code);
   }
@@ -92,13 +116,13 @@ export class SocialFS implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): void {
-    const basename = path.posix.basename(uri.path);
-    const parent = this._lookupParentDirectory(uri);
-    let entry = parent.entries.get(basename);
-
     if (!this.localStoragePath) {
       throw new Error("No local storage path");
     }
+
+    const basename = path.posix.basename(uri.path);
+    const parent = this._lookupParentDirectory(uri);
+    let entry = parent.entries.get(basename);
 
     if (entry instanceof Directory) {
       throw vscode.FileSystemError.FileIsADirectory(uri);
@@ -132,7 +156,6 @@ export class SocialFS implements vscode.FileSystemProvider {
     fs.writeFileSync(fd, content);
     fs.closeSync(fd);
 
-    this.localFiles.push(uri);
     this._fireSoon({ type: vscode.FileChangeType.Changed, uri });
   }
 
@@ -154,16 +177,7 @@ export class SocialFS implements vscode.FileSystemProvider {
 
     entry = new File(basename, localPath);
     parent.entries.set(basename, entry);
-    if (localPath) { this.localFiles.push(uri) };
     this._fireSoon({ type: vscode.FileChangeType.Created, uri });
-  }
-
-  async addToContext(key: string, value: string){
-      // add key to context
-    let data = await this.readFile(vscode.Uri.parse(`${this.scheme}:/context.json`));
-    let contextData = JSON.parse(data?.toString() || "{}");
-    contextData[key] = value;
-    await this.writeFile(vscode.Uri.parse(`${this.scheme}:/context.json`), Buffer.from(JSON.stringify(contextData, null, 2)), { create: true, overwrite: true });
   }
 
   // --- manage files/folders
@@ -173,11 +187,59 @@ export class SocialFS implements vscode.FileSystemProvider {
     newUri: vscode.Uri,
     options: { overwrite: boolean }
   ): void {
-    console.warn("&& rename", oldUri, newUri, options);
+    // cannot rename props.json or context.json
+    if (oldUri.path === '/props.json' || oldUri.path === '/context.json') {
+      throw vscode.FileSystemError.NoPermissions("Cannot rename props.json or context.json");
+    }
+
+    const file = this._lookupAsFile(oldUri, false);
+
+    if (file.localPath) {
+      // we need to move the physical file
+      const newLocalPath = path.join(this.localStoragePath!, newUri.path);
+      fs.renameSync(file.localPath, newLocalPath);
+
+      // replace file's local information
+      file.localPath = newLocalPath;
+    }
+
+    file.name = path.posix.basename(newUri.path);
+    const oldParent = this._lookupParentDirectory(oldUri);
+    const newParent = this._lookupParentDirectory(newUri);
+    oldParent.entries.delete(path.posix.basename(oldUri.path));
+    newParent.entries.set(file.name, file);
+
+    this._fireSoon({ type: vscode.FileChangeType.Deleted, uri: oldUri });
+    this._fireSoon({ type: vscode.FileChangeType.Created, uri: newUri });
   }
 
   delete(uri: vscode.Uri): void {
-    console.warn("&& delete", uri);
+    // cannot delete props.json or context.json
+    if (uri.path === '/props.json' || uri.path === '/context.json') {
+      throw vscode.FileSystemError.NoPermissions("Cannot delete props.json or context.json");
+    }
+
+    // cannot delete root
+    if (uri.path === '/') { return; }
+
+    const lookup = this._lookup(uri, false);
+
+    // if is a File, we need to delete the physical file
+    if (lookup instanceof File) {
+      if (lookup.localPath) {
+        fs.unlinkSync(lookup.localPath);
+      }
+    }
+
+    if (lookup instanceof Directory) {
+      if (fs.existsSync(path.join(this.localStoragePath!, lookup.name))) {
+        fs.rmdirSync(path.join(this.localStoragePath!, lookup.name), { recursive: true });
+      }
+    }
+
+    const parent = this._lookupParentDirectory(uri);
+    parent.entries.delete(path.posix.basename(uri.path));
+    this._fireSoon({ type: vscode.FileChangeType.Deleted, uri });
   }
 
   // --- lookup
@@ -219,7 +281,7 @@ export class SocialFS implements vscode.FileSystemProvider {
     if (entry instanceof File) {
       return entry;
     }
-    throw vscode.FileSystemError.FileIsADirectory(uri);
+    throw vscode.FileSystemError.FileIsADirectory(`Invalid action on ${uri}`);
   }
 
   private _lookupParentDirectory(uri: vscode.Uri): Directory {
@@ -253,4 +315,12 @@ export class SocialFS implements vscode.FileSystemProvider {
     }, 5);
   }
 
+  // Aux
+  async addToContext(key: string, value: string) {
+    // add key to context
+    let data = await this.readFile(vscode.Uri.parse(`${this.scheme}:/context.json`));
+    let contextData = JSON.parse(data?.toString() || "{}");
+    contextData[key] = value;
+    await this.writeFile(vscode.Uri.parse(`${this.scheme}:/context.json`), Buffer.from(JSON.stringify(contextData, null, 2)), { create: true, overwrite: true });
+  }
 }

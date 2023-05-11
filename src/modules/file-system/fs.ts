@@ -13,25 +13,10 @@ export class SocialFS implements vscode.FileSystemProvider {
   localStoragePath: string | undefined;
 
   constructor(localStoragePath?: string) {
-    this.localStoragePath = localStoragePath;
 
     if (localStoragePath === undefined) { return; }
 
-    // Add all local files and folders from the selected dir
-    const allWidgets = glob.sync(`**/*.jsx`, { cwd: localStoragePath });
-
-    for (const widget of allWidgets) {
-      let [dir, ...file] = widget.split('/');
-      this.createDirectory(vscode.Uri.parse(`${this.scheme}:/${dir}`));
-
-      while (file.length > 1) {
-        dir = path.join(dir, file[0]);
-        file = file.slice(1);
-        this.createDirectory(vscode.Uri.parse(`${this.scheme}:/${dir}`));
-      }
-
-      this.addReference(vscode.Uri.parse(`${this.scheme}:/${dir}/${file}`), path.join(localStoragePath, widget));
-    }
+    this.localStoragePath = localStoragePath;
 
     const jsonFiles = ["props.json", "context.json"];
     const defaultValue = ["{}", JSON.stringify(defaultContext)];

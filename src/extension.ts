@@ -7,6 +7,7 @@ import { SocialFS } from "./modules/file-system/fs";
 import { WidgetPreviewPanel } from "./modules/preview-panel";
 import { chooseLocalPath } from "./commands/init-fs";
 import { preview } from "./commands/preview";
+import { refreshFS } from "./commands/refresh";
 
 export function activate(context: vscode.ExtensionContext) {
   const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');
@@ -17,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // File System
   let socialFS = new SocialFS(localWorkspace);
+  refreshFS(context, socialFS);
   context.subscriptions.push(vscode.workspace.registerFileSystemProvider(socialFS.scheme, socialFS, { isCaseSensitive: true }));
 
   // Preview Widget
@@ -63,6 +65,11 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerUriHandler({
       handleUri: (uri) => handleTransactionCallback(uri, context, localWorkspace, socialFS)
     })
+  );
+
+  // Reload FS
+  context.subscriptions.push(
+    vscode.commands.registerCommand("workbench.files.action.refreshFilesExplorer", () => { refreshFS(context, socialFS); })
   );
 }
 

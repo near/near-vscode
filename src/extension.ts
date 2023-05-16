@@ -1,79 +1,103 @@
 import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 import { openAccountWidgets } from "./commands/load";
 import { loginAccount } from "./commands/login";
 import { publishCode } from "./commands/publish";
 import { handleTransactionCallback } from "./commands/callbacks";
-import { SocialFS } from "./modules/file-system/fs";
 import { WidgetPreviewPanel } from "./modules/preview-panel";
-import { chooseLocalPath } from "./commands/init-fs";
 import { preview } from "./commands/preview";
-import { refreshFS } from "./commands/refresh";
+import { startIDE } from "./commands/start-ide";
+import { updateAllFlags, updateFlags } from "./flags";
+
+let localWorkspace: string = "";
+const FS = vscode.workspace.fs;
 
 export function activate(context: vscode.ExtensionContext) {
-  const localWorkspace: string | undefined = context.workspaceState.get('localStoragePath');
-  const openAccount: string | undefined = context.workspaceState.get('openAccount');
+  vscode.commands.executeCommand('setContext', 'BOS.enabled', false);
+  vscode.commands.executeCommand('setContext', 'BOS.canStart', false);
 
-  context.workspaceState.update('localStoragePath', undefined);
-  context.workspaceState.update('openAccount', undefined);
+  // auto start if the folder is already configured
+  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    localWorkspace = vscode.workspace.workspaceFolders[0].uri.path;
+    vscode.commands.executeCommand('setContext', 'BOS.canStart', true);
 
-  // File System
-  let socialFS = new SocialFS(localWorkspace);
-  refreshFS(context, socialFS);
-  context.subscriptions.push(vscode.workspace.registerFileSystemProvider(socialFS.scheme, socialFS, { isCaseSensitive: true }));
+    const files = ["props.json", "context.json", "flags.json"];
+    let allExist = true;
+    for (const file of files) {
+      allExist &&= fs.existsSync(path.join(localWorkspace, file));
+    }
+
+    allExist && updateAllFlags(localWorkspace);
+
+    vscode.commands.executeCommand('setContext', 'BOS.enabled', allExist);
+  }
+
+  // Button to start BOS IDE
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.startIDE", () => startIDE(localWorkspace))
+  );
+
+  // Fetch Widgets by Account ID
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.openWidgetsFromAccount", (accountId?) => {
+      openAccountWidgets(localWorkspace, accountId);
+    })
+  );
+
+  // Login Account
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.login", () =>
+      loginAccount(context, 'mainnet', localWorkspace)
+    )
+  );
 
   // Preview Widget
-  const previewPanel = new WidgetPreviewPanel(context, socialFS);
+  const previewPanel = new WidgetPreviewPanel(context, localWorkspace);
   const log = vscode.window.createOutputChannel("Widget");
 
   context.subscriptions.push(
     vscode.commands.registerCommand("near.showWidgetPreview", () => { preview(previewPanel, log); })
   );
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand("near.chooseLocalPath", async () => {
-      chooseLocalPath(context, socialFS);
-    })
-  );
-
-  // Open Widgets by Account ID
-  context.subscriptions.push(
-    vscode.commands.registerCommand("near.openWidgetsFromAccount", (accountId?) => {
-      openAccountWidgets(socialFS, accountId);
-    })
-  );
-
-  if (openAccount) {
-    vscode.commands.executeCommand("near.openWidgetsFromAccount", openAccount);
-  }
-
-  // Login
-  context.subscriptions.push(
-    vscode.commands.registerCommand("near.login", () =>
-      loginAccount(context, 'mainnet', socialFS)
-    )
-  );
-
   // Publish Code
   context.subscriptions.push(
     vscode.commands.registerCommand("near.publishWidget", () =>
-      publishCode(context, 'mainnet')
+      publishCode(context, 'mainnet', localWorkspace)
     )
   );
 
-  // Callback
+  // Handle Callbacks (login, publish)
   context.subscriptions.push(
     vscode.window.registerUriHandler({
-      handleUri: (uri) => handleTransactionCallback(uri, context, localWorkspace, socialFS)
+      handleUri: (uri) => handleTransactionCallback(uri, context, localWorkspace)
     })
   );
 
-  // Reload FS
-  context.subscriptions.push(
-    vscode.commands.registerCommand("workbench.files.action.refreshFilesExplorer", () => { refreshFS(context, socialFS); })
-  );
+  // Watch for changes in the workspace and update flags
+  const watcher = vscode.workspace.createFileSystemWatcher('**/*.jsx');
+
+  watcher.onDidChange(async (document: vscode.Uri) => {
+    updateFlags(localWorkspace, document);
+  });
+
+  watcher.onDidDelete(async (document: vscode.Uri) => {
+    updateFlags(localWorkspace, document, true);
+  });
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {
   vscode.commands.executeCommand('setContext', 'loadedStoragePath', false);
+}
+
+// aux
+export async function addToContext(localWorkspace: string | undefined, key: string, value: string) {
+  if (!localWorkspace) { return; }
+
+  const contextUri = vscode.Uri.parse(path.join(localWorkspace, `context.json`));
+  let data = await FS.readFile(contextUri);
+  let contextData = JSON.parse(data?.toString() || "{}");
+  contextData[key] = value;
+  await FS.writeFile(contextUri, Buffer.from(JSON.stringify(contextData, null, 2)));
 }

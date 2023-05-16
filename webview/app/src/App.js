@@ -12,7 +12,7 @@ import { create_selector } from "./data/selector";
 
 export const refreshAllowanceObj = {};
 
-function App({code, wProps, config, vsContext}) {
+function App({code, wProps, flags, vsContext}) {
   const [connected, setConnected] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [signedAccountId, setSignedAccountId] = useState(null);
@@ -61,7 +61,7 @@ function App({code, wProps, config, vsContext}) {
   return (
     <div className="App">
       <Router basename={process.env.PUBLIC_URL}>
-        <EmbedPage code={code} wProps={wProps} config={config} vsContext={vsContext} viewerProps={viewerProps} />
+        <EmbedPage code={code} wProps={wProps} flags={flags} vsContext={vsContext} viewerProps={viewerProps} />
       </Router>
     </div>
   );

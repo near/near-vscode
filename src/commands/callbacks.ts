@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { getTransactionStatus } from '../modules/social';
-import { SocialFS } from '../modules/file-system/fs';
+import { addToContext } from '../extension';
 
-export const handleTransactionCallback = async (uri: vscode.Uri, context: vscode.ExtensionContext, localWorkspace: string | undefined, fileSystem: SocialFS) => {
+export const handleTransactionCallback = async (uri: vscode.Uri, context: vscode.ExtensionContext, localWorkspace: string | undefined) => {
   const queryParams = new URLSearchParams(uri.query);
 
   // Transaction callback
@@ -26,8 +26,8 @@ export const handleTransactionCallback = async (uri: vscode.Uri, context: vscode
   if (queryParams.has('account_id')) {
     const accountId = queryParams.get('account_id') as string;
 
-    await fileSystem.addToContext('accountId', accountId);
-    await fileSystem.addToContext('networkId', "mainnet");
+    await addToContext(localWorkspace, 'accountId', accountId);
+    await addToContext(localWorkspace, 'networkId', "mainnet");
 
     if (localWorkspace) {
       vscode.commands.executeCommand("near.openWidgetsFromAccount", accountId);

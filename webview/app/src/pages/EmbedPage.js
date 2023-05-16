@@ -1,8 +1,7 @@
 import React from "react";
 import { Widget } from "near-social-vm";
 
-export default function EmbedPage({ code, wProps, config, vsContext, viewerProps }) {
-  
+export default function EmbedPage({ code, wProps, flags, vsContext, viewerProps }) {
   return (
     <>
       <Widget
@@ -13,7 +12,7 @@ export default function EmbedPage({ code, wProps, config, vsContext, viewerProps
           children: (
             <>
               <div className="position-relative overflow-hidden mt-3">
-                <Widget code={code} props={wProps} config={config} />
+                <Widget code={code} props={wProps} config={{ redirectMap: flags }} />
               </div>
             </>
           ),

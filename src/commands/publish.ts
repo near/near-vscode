@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
 import { WIDGET_EXT } from '../config';
 import { transactionForPublishingCode } from '../modules/social';
+import path from 'path';
 
-export const publishCode = async (context: vscode.ExtensionContext, network:string) => {
+export const publishCode = async (context: vscode.ExtensionContext, network:string, localWorkspace: string) => {
   // This will be called from an active panel
   const code: string = vscode.window.activeTextEditor?.document?.getText() || "";
-  const uri: string = vscode.window.activeTextEditor?.document?.uri.toString() || "";
+  const uri: string = vscode.window.activeTextEditor?.document?.uri.path.toString() || "";
 
-  const [root, accountId, widgetName] = uri.split('/');
-
-  let transaction = await transactionForPublishingCode(accountId, widgetName.replace(WIDGET_EXT, ''), code);
+  const [accountId, ...widgetName] = path.relative(localWorkspace, uri).split('/');
+  let transaction = await transactionForPublishingCode(accountId, widgetName.join('.').replace(WIDGET_EXT, ''), code);
 
   const publisher = context.extension.packageJSON.publisher;
   const name = context.extension.packageJSON.name;

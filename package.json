@@ -1,8 +1,8 @@
 {
   "name": "near-discovery-ide",
-  "displayName": "NEAR Discovery",
-  "description": "Build a decentralized frontend in minutes. Known before as NEAR Social",
-  "version": "1.0.3",
+  "displayName": "NEAR BOS IDE",
+  "description": "Build a decentralized frontend in minutes. Known before as NEAR Social / Discovery",
+  "version": "2.0.0",
   "publisher": "near-protocol",
   "icon": "readme/near-protocol-near-logo.png",
   "homepage": "https://github.com/near/near-vscode",
@@ -30,30 +30,27 @@
       {
         "command": "near.login",
         "title": "Login",
-        "category": "NEAR.discovery"
+        "category": "NEAR.discovery",
+        "enablement": "BOS.enabled"
       },
       {
         "command": "near.openWidgetsFromAccount",
         "title": "View account in workspace",
-        "category": "NEAR.discovery"
-      },
-      {
-        "command": "near.chooseLocalPath",
-        "title": "Choose Widget Folder",
+        "enablement": "BOS.enabled",
         "category": "NEAR.discovery"
       },
       {
         "command": "near.publishWidget",
         "title": "Publish Widget",
         "category": "NEAR.discovery",
-        "enablement": "resourceScheme == near",
+        "enablement": "BOS.enabled",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "near.showWidgetPreview",
         "title": "Show Widget Preview",
         "category": "NEAR.discovery",
-        "enablement": "resourceScheme == near",
+        "enablement": "BOS.enabled",
         "icon": "$(preview)"
       }
     ],
@@ -71,37 +68,42 @@
     "viewsWelcome": [
       {
         "view": "near-discovery",
-        "contents": "[Choose your working folder](command:near.chooseLocalPath)",
-        "when": "resourceScheme != near"
+        "contents": "[Start BOS IDE](command:near.startIDE)",
+        "when": "!BOS.enabled && BOS.canStart"
+      },
+      {
+        "view": "near-discovery",
+        "contents": "Please open a folder to start",
+        "when": "!BOS.enabled && !BOS.canStart"
       },
       {
         "view": "near-discovery",
         "contents": "[Login & Fetch Widgets](command:near.login)",
-        "when": "resourceScheme == near"
+        "when": "BOS.enabled"
       },
       {
         "view": "near-discovery",
         "contents": "[Fetch Account Widgets](command:near.openWidgetsFromAccount)",
-        "when": "resourceScheme == near"
+        "when": "BOS.enabled"
       }
     ],
     "views": {
       "explorer": [
         {
           "id": "near-discovery",
-          "name": "Near Discovery"
+          "name": "Near BOS"
         }
       ]
     },
     "menus": {
       "editor/title": [
         {
-          "when": "resourceScheme == near",
+          "when": "BOS.enabled",
           "command": "near.showWidgetPreview",
           "group": "navigation"
         },
         {
-          "when": "resourceScheme == near",
+          "when": "BOS.enabled",
           "command": "near.publishWidget",
           "group": "navigation"
         }

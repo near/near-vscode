@@ -59,8 +59,6 @@ export const transactionForPublishingCode = async (accountId: AccountId, widgetN
 
 // RPC Call
 export const socialViewMethod = async (methodName: String, args: any): Promise<any> => {
-  console.log("RPC", args);
-
   const promise = provider.query({
     request_type: 'call_function',
     account_id: SOCIAL_CONTRACT_ACCOUNT,

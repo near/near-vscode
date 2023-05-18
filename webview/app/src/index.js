@@ -21,7 +21,7 @@ window.addEventListener("message", (event) => {
     switch (message.command) {
         case "update-code":
             if (message.code) {
-                root.render(<App code={message.code} wProps={message.props} config={message.config} vsContext={message.context} />);
+                root.render(<App code={message.code} wProps={message.props} flags={message.flags} vsContext={message.context} />);
             }
             break;
         default:

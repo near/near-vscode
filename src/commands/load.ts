@@ -1,33 +1,36 @@
+import path from 'path';
 import * as vscode from 'vscode';
-import { defaultContext } from '../config';
-import { SocialFS } from '../modules/file-system/fs';
+
 import * as social from '../modules/social';
 
-export const openAccountWidgets = async (fileSystem: SocialFS, accountId?: string) => {
-  accountId = accountId || await vscode.window.showInputBox({ placeHolder: 'mainnet account id' });
+export const openAccountWidgets = async (localWorkspace:string, accountId?: string) => {
+  accountId = accountId || await vscode.window.showInputBox({ placeHolder: 'Mainnet AccountId [e.g. alice.near]' });
 
-  if (accountId) { // TODO: Validate correctly
+  if (accountId) {
     vscode.window.showInformationMessage(`Loading widgets for: ${accountId}`);
-
-    fileSystem.createDirectory(vscode.Uri.parse(`${fileSystem.scheme}:/${accountId}`));
 
     const widgetNames = await social.getWidgetsNames(accountId);
 
-    for (const name of widgetNames) {
-      fileSystem.addReference(vscode.Uri.parse(`${fileSystem.scheme}:/${accountId}/${name}.jsx`));
+    if (!widgetNames.length) {
+      return vscode.window.showErrorMessage('No widgets found');
     }
 
-    // Add a props.json file if it does not exist
-    fileSystem.writeFile(vscode.Uri.parse(`${fileSystem.scheme}:/props.json`), Buffer.from("{}"), {
-      overwrite: false,
-      create: true
-    });
+    vscode.workspace.fs.createDirectory(vscode.Uri.parse(path.join(localWorkspace, accountId)));
 
-    // Add a config.json file if it does not exist
-    fileSystem.writeFile(vscode.Uri.parse(`${fileSystem.scheme}:/context.json`), Buffer.from(JSON.stringify(defaultContext)), {
-      overwrite: false,
-      create: true
-    });   
+    for (const name of widgetNames) {
+      let dir = path.join(localWorkspace, accountId);
+      let file = name.split('.');
+
+      // separate `a.widget.name` into `/a/widget/name.jsx`
+      while (file.length > 1) {
+        dir = path.join(dir, file[0]);
+        file = file.slice(1);
+        vscode.workspace.fs.createDirectory(vscode.Uri.parse(dir));
+      }
+
+      const widgetCode = await social.getWidgetCode(accountId, name);
+      vscode.workspace.fs.writeFile(vscode.Uri.parse(path.join(dir, `${file[0]}.jsx`)), Buffer.from(widgetCode));
+    }
   } else {
     vscode.window.showErrorMessage('Invalid Account ID');
   }

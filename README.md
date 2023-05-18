@@ -1,17 +1,17 @@
-# NEAR Discovery IDE
+# NEAR BOS IDE
 
-Extension to help you develop [components](https://discovery.near-docs.io) in [NEAR Discovery](https://alpha.near.org).
+Extension to help you develop [components](https://discovery.near-docs.io) in [NEAR BOS](https://near.org).
 
 ## Features
-- Retrieve any widget from Discovery
+- Retrieve any component from BOS
 - Change the code and preview the changes locally
 - Publish directly to the NEAR Blockchain
-- See the widget logs in the vscode Debug Console
+- See the widget logs in the Debug Console
 
 ![Extension Overview](./readme/extension.jpeg)
 
 ## How to Use
-After installing the widget, a new section named **`Near Discovery`** will be added to the explorer.
+After installing the widget, a new section named **`Near BOS`** will be added to the explorer.
 
 ### Start Your Workspace
 

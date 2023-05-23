@@ -1,6 +1,6 @@
 import { providers, transactions } from "near-api-js";
 import { window } from "vscode";
-import { COST_PER_BYTE, SOCIAL_CONTRACT_ACCOUNT, TGAS30 } from "../config";
+import { COST_PER_BYTE, DATA_OVERHEAD, SOCIAL_CONTRACT_ACCOUNT, TGAS30 } from "../config";
 import BN from "bn.js";
 import * as naj from "near-api-js";
 import { FinalExecutionOutcome } from "near-api-js/lib/providers";
@@ -47,7 +47,7 @@ export const transactionForPublishingCode = async (accountId: AccountId, widgetN
 
   // Amount to pay, based on the size of the data we are storing
   // TODO: Improve this
-  const amount = new BN(JSON.stringify(data).length).mul(COST_PER_BYTE);
+  const amount = new BN(JSON.stringify(data).length + DATA_OVERHEAD).mul(COST_PER_BYTE);
 
   // Create the transaction
   const actions = [transactions.functionCall('set', data, TGAS30, amount)];

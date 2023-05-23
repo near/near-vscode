@@ -11,13 +11,7 @@ Extension to help you develop [components](https://discovery.near-docs.io) in [N
 ![Extension Overview](./readme/extension.jpeg)
 
 ## How to Use
-After installing the widget, a new section named **`Near BOS`** will be added to the explorer.
-
-### Start Your Workspace
-
-![Installed](./readme/installed.png)
-
-Choose a working directory using the `Choose your working folder` button.
+After installing the widget, a new section named **`Near BOS`** will be added to the explorer. Choose a folder to start using it.
 
 ### Retrieve Widgets, Preview and Publish
 

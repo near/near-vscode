@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "error-polyfill";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "@near-wallet-selector/modal-ui/styles.css";
 import "bootstrap/dist/js/bootstrap.bundle";
 import "App.scss";
 import { HashRouter as Router } from "react-router-dom";
@@ -23,8 +22,6 @@ function App({code, wProps, flags, vsContext}) {
   const near = useNear();
   const account = useAccount(vsContext.accountId);
   const accountId = account.accountId;
-
-  const location = window.location;
 
   useEffect(() => {
     initNear &&

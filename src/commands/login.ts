@@ -17,6 +17,6 @@ export const loginAccount = async (context: vscode.ExtensionContext, network: st
   await addToContext(localWorkspace, 'accessKey', keyPair.toString());
 
   // Create the login URL and redirect the user to login
-  let url = `https://wallet.${network}.near.org/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}`;
+  let url = `https://wallet.${network}.near.org/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}&methodNames=set`;
   vscode.env.openExternal(vscode.Uri.parse(url));
 };

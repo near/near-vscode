@@ -3,11 +3,17 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
 
-// Overwrite console.log, so we can capture it in vscode
+// Overwrite logging behavior, to capture it in vscode
 const classicLog = console.log
 console.log = (...data) => {
-    vscode.postMessage({ command: "console.log", data });
+    vscode.postMessage({ command: "console.log", data: JSON.parse(JSON.stringify(data)) });
     classicLog(data)
+}
+
+const classicError = console.error
+console.error = (...data) => {
+    vscode.postMessage({ command: "console.log", data: JSON.parse(JSON.stringify(data)) });
+    classicError(data)
 }
 
 // React

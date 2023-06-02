@@ -29,11 +29,14 @@ export const handleTransactionCallback = async (uri: vscode.Uri, context: vscode
     await addToContext(localWorkspace, 'accountId', accountId);
     await addToContext(localWorkspace, 'networkId', "mainnet");
 
+    if(context.globalState.get('addKeyForContract') === true){
+      context.globalState.update('addKeyForContract', false);
+      vscode.window.showInformationMessage(`Successfully added key for account ${accountId}`);
+      return;
+    }
+
     if (localWorkspace) {
       vscode.commands.executeCommand("near.openWidgetsFromAccount", accountId);
-    } else {
-      context.workspaceState.update('openAccount', accountId);
-      vscode.commands.executeCommand("near.chooseLocalPath");
     }
   }
 };

@@ -2,7 +2,7 @@
   "name": "near-discovery-ide",
   "displayName": "NEAR BOS IDE",
   "description": "Build a decentralized frontend in minutes. Known before as NEAR Social / Discovery",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "publisher": "near-protocol",
   "icon": "readme/near-protocol-near-logo.png",
   "homepage": "https://github.com/near/near-vscode",
@@ -84,6 +84,11 @@
       {
         "view": "near-discovery",
         "contents": "[Fetch Account Widgets](command:near.openWidgetsFromAccount)",
+        "when": "BOS.enabled"
+      },
+      {
+        "view": "near-discovery",
+        "contents": "[Add Access Key](command:near.addKey)",
         "when": "BOS.enabled"
       }
     ],

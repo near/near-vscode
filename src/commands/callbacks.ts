@@ -20,6 +20,8 @@ export const handleTransactionCallback = async (uri: vscode.Uri, context: vscode
       vscode.window.showErrorMessage(`Error: ${result.error}`, "View in Explorer")
         .then(action);
     }
+
+    return;
   }
 
   // Passing an AccountID

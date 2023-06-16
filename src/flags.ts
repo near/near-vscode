@@ -28,6 +28,8 @@ export async function updateFlags(localWorkspace: string, uri: vscode.Uri, del: 
   let data = await FS.readFile(flagsUri);
   let flagsData = JSON.parse(data?.toString() || `{"components": {}}`);
 
+  if (!("components" in flagsData)) { flagsData["components"] = {}; }
+
   const [accountId, ...widgetName] = path.relative(localWorkspace, uri.path).split('/');
 
   const socialPath = uriToSocialPath(accountId, widgetName);

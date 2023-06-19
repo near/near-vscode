@@ -6,6 +6,7 @@ export default function EmbedPage({ code, wProps, flags, vsContext, viewerProps 
     <>
       <Widget
         src={vsContext.wrapperSrc}
+        config={{ redirectMap: flags }}
         props={{
           ...vsContext.wrapperProps,
           ...viewerProps,

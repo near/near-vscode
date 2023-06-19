@@ -9,6 +9,7 @@ import { WidgetPreviewPanel } from "./modules/preview-panel";
 import { preview } from "./commands/preview";
 import { startIDE } from "./commands/start-ide";
 import { updateAllFlags, updateFlags } from "./flags";
+import { addKeyForContract } from "./commands/add-key";
 
 let localWorkspace: string = "";
 const FS = vscode.workspace.fs;
@@ -48,7 +49,14 @@ export function activate(context: vscode.ExtensionContext) {
   // Login Account
   context.subscriptions.push(
     vscode.commands.registerCommand("near.login", () =>
-      loginAccount(context, 'mainnet', localWorkspace)
+      loginAccount(context, localWorkspace)
+    )
+  );
+
+  // Login Account
+  context.subscriptions.push(
+    vscode.commands.registerCommand("near.addKey", () =>
+      addKeyForContract(context, localWorkspace)
     )
   );
 
@@ -63,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Publish Code
   context.subscriptions.push(
     vscode.commands.registerCommand("near.publishWidget", () =>
-      publishCode(context, 'mainnet', localWorkspace)
+      publishCode(context, localWorkspace)
     )
   );
 
@@ -100,4 +108,13 @@ export async function addToContext(localWorkspace: string | undefined, key: stri
   let contextData = JSON.parse(data?.toString() || "{}");
   contextData[key] = value;
   await FS.writeFile(contextUri, Buffer.from(JSON.stringify(contextData, null, 2)));
+}
+
+export async function getFromContext(localWorkspace: string | undefined, key: string): Promise<string | undefined> {
+  if (!localWorkspace) { return; }
+
+  const contextUri = vscode.Uri.parse(path.join(localWorkspace, `context.json`));
+  let data = await FS.readFile(contextUri);
+  let contextData = JSON.parse(data?.toString() || "{}");
+  return key in contextData? contextData[key] : undefined;
 }

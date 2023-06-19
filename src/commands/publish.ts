@@ -2,20 +2,23 @@ import * as vscode from 'vscode';
 import { WIDGET_EXT } from '../config';
 import { transactionForPublishingCode } from '../modules/social';
 import path from 'path';
+import { getFromContext } from '../extension';
 
-export const publishCode = async (context: vscode.ExtensionContext, network:string, localWorkspace: string) => {
+export const publishCode = async (context: vscode.ExtensionContext, localWorkspace: string) => {
   // This will be called from an active panel
   const code: string = vscode.window.activeTextEditor?.document?.getText() || "";
   const uri: string = vscode.window.activeTextEditor?.document?.uri.path.toString() || "";
+  const networkId = await getFromContext(localWorkspace, 'networkId') || "mainnet";
 
   const [accountId, ...widgetName] = path.relative(localWorkspace, uri).split('/');
-  let transaction = await transactionForPublishingCode(accountId, widgetName.join('.').replace(WIDGET_EXT, ''), code);
+  let transaction = await transactionForPublishingCode(accountId, widgetName.join('.').replace(WIDGET_EXT, ''), code, networkId);
 
   const publisher = context.extension.packageJSON.publisher;
   const name = context.extension.packageJSON.name;
   const callback = `${vscode.env.uriScheme}://${publisher}.${name}`;
 
-  const publishUrl = new URL('sign', 'https://wallet.' + network + '.near.org/');
+
+  const publishUrl = new URL('sign', 'https://wallet.' + networkId + '.near.org/');
   publishUrl.searchParams.set('transactions', transaction);
   publishUrl.searchParams.set('callbackUrl', callback);
   

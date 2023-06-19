@@ -1,6 +1,4 @@
 import { connect, KeyPair, keyStores } from 'near-api-js';
-import { functionCall } from 'near-api-js/lib/transaction';
-
 
 const keyStore = new keyStores.InMemoryKeyStore();
 
@@ -30,10 +28,20 @@ const connectionConfig = (keyStore, networkId) => {
 
 class expectedAccount {
     constructor(account) { this.account = account }
-    async signAndSendTransaction({ receiverId, actions }) {
-        const { methodName, args, gas } = actions[0].params
-        let new_actions = [functionCall(methodName, args, gas, "0")]
-        return await this.account.signAndSendTransaction({ receiverId, actions: new_actions })
+    async signAndSendTransaction(tx) {
+        
+        try{
+            const res = await this.account.signAndSendTransaction(tx);
+            return res;
+        } catch({name, message}) {
+            console.log("tx error", `ERROR: ${message}`);
+            throw Error(message)
+        }
+    }
+    async signAndSendTransactions({ transactions }) {
+        return Promise.all(
+            transactions.map(tx => this.signAndSendTransaction(tx))
+        );
     }
 }
 

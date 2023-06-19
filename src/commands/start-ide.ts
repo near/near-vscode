@@ -7,7 +7,7 @@ export const startIDE = async (localWorkspace: string) => {
   vscode.commands.executeCommand('setContext', 'BOS.enabled', true);
 
   const files = ["props.json", "context.json", "flags.json"];
-  const defaultValues = ["{}", JSON.stringify(defaultContext), "{}"];
+  const defaultValues = ["{}", JSON.stringify(defaultContext), `{"components":{}}`];
 
   for (let i = 0; i < files.length; i++) {
     const file = path.join(localWorkspace, files[i]);

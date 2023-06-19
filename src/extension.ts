@@ -49,14 +49,14 @@ export function activate(context: vscode.ExtensionContext) {
   // Login Account
   context.subscriptions.push(
     vscode.commands.registerCommand("near.login", () =>
-      loginAccount(context, 'mainnet', localWorkspace)
+      loginAccount(context, localWorkspace)
     )
   );
 
   // Login Account
   context.subscriptions.push(
     vscode.commands.registerCommand("near.addKey", () =>
-      addKeyForContract(context, 'mainnet', localWorkspace)
+      addKeyForContract(context, localWorkspace)
     )
   );
 
@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Publish Code
   context.subscriptions.push(
     vscode.commands.registerCommand("near.publishWidget", () =>
-      publishCode(context, 'mainnet', localWorkspace)
+      publishCode(context, localWorkspace)
     )
   );
 

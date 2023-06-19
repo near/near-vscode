@@ -3,7 +3,7 @@ import { APP_NAME } from '../config';
 import { KeyPair } from 'near-api-js';
 import { addToContext, getFromContext } from '../extension';
 
-export const addKeyForContract = async (context: vscode.ExtensionContext, network: string, localWorkspace: string) => {
+export const addKeyForContract = async (context: vscode.ExtensionContext, localWorkspace: string) => {
   const contractId = await vscode.window.showInputBox({ placeHolder: 'Which contract do you want to call?' });
   const accountId = getFromContext(localWorkspace, "accountId");
   
@@ -26,7 +26,9 @@ export const addKeyForContract = async (context: vscode.ExtensionContext, networ
     context.globalState.update('addKeyForContract', true);
 
     // Create the login URL and redirect the user to login
-    let url = `https://wallet.${network}.near.org/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}&account_id=${accountId}`;
+    const networkId = await getFromContext(localWorkspace, 'networkId') || "mainnet";
+
+    let url = `https://wallet.${networkId}.near.org/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}&account_id=${accountId}`;
     vscode.env.openExternal(vscode.Uri.parse(url));
   } else {
     vscode.window.showErrorMessage('Invalid Contract ID');

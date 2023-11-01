@@ -10,14 +10,15 @@
     "bootstrap-icons": "^1.9.0",
     "collections": "^5.1.12",
     "error-polyfill": "^0.1.2",
+    "https": "^1.0.0",
     "local-storage": "^2.0.0",
     "near-api-js": "^1.1.0",
-    "near-social-vm": "git+https://github.com/NearSocial/VM.git#2.0.0",
+    "near-social-vm": "git+https://github.com/NearSocial/VM.git#2.5.2",
     "prettier": "^2.7.1",
     "react": "^18.2.0",
-    "react-bootstrap": "^2.5.0",
+    "react-bootstrap": "^2.9.1",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "^6.18.0",
     "styled-components": "^5.3.6"
   },
   "scripts": {

@@ -17,8 +17,8 @@ export const publishCode = async (context: vscode.ExtensionContext, localWorkspa
   const name = context.extension.packageJSON.name;
   const callback = `${vscode.env.uriScheme}://${publisher}.${name}`;
 
-
-  const publishUrl = new URL('sign', 'https://wallet.' + networkId + '.near.org/');
+  const prefixUrl = networkId === 'testnet' ? 'testnet' : 'app';
+  const publishUrl = new URL('sign', `https://${prefixUrl}.mynearwallet.com/`);
   publishUrl.searchParams.set('transactions', transaction);
   publishUrl.searchParams.set('callbackUrl', callback);
   

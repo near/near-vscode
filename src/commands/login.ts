@@ -19,6 +19,7 @@ export const loginAccount = async (context: vscode.ExtensionContext, localWorksp
   const contractId = contractAccountForNetwork(networkId);
 
   // Create the login URL and redirect the user to login
-  let url = `https://wallet.${networkId}.near.org/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}&methodNames=set`;
+  const prefixUrl = networkId === 'testnet' ? 'testnet' : 'app';
+  let url = `https://${prefixUrl}.mynearwallet.com/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}&methodNames=set`;
   vscode.env.openExternal(vscode.Uri.parse(url));
 };

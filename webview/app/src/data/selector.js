@@ -15,13 +15,13 @@ const connectionConfig = (keyStore, networkId) => {
             networkId: "testnet",
             keyStore,
             nodeUrl: "https://rpc.testnet.near.org",
-            walletUrl: "https://wallet.testnet.near.org",
+            walletUrl: "https://testnet.app.mynearwallet.com",
         },
         mainnet: {
             networkId: "mainnet",
             keyStore,
             nodeUrl: "https://rpc.near.org",
-            walletUrl: "https://wallet.near.org",
+            walletUrl: "https://app.mynearwallet.com",
         }
     }[networkId]
 };
@@ -29,11 +29,10 @@ const connectionConfig = (keyStore, networkId) => {
 class expectedAccount {
     constructor(account) { this.account = account }
     async signAndSendTransaction(tx) {
-        
-        try{
+        try {
             const res = await this.account.signAndSendTransaction(tx);
             return res;
-        } catch({name, message}) {
+        } catch ({ name, message }) {
             console.log("tx error", `ERROR: ${message}`);
             throw Error(message)
         }
@@ -48,7 +47,7 @@ class expectedAccount {
 export async function create_selector(networkId = "mainnet", accountId, accessKey) {
     if (accessKey) {
         const keyPair = KeyPair.fromString(accessKey)
-        await keyStore.setKey("mainnet", accountId, keyPair)
+        await keyStore.setKey(networkId, accountId, keyPair)
     }
 
     const nearConnection = await connect(connectionConfig(keyStore, networkId));

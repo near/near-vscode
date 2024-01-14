@@ -11,7 +11,7 @@ import { create_selector } from "./data/selector";
 
 export const refreshAllowanceObj = {};
 
-function App({code, wProps, flags, vsContext}) {
+function App({ code, wProps, flags, vsContext }) {
   const [connected, setConnected] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [signedAccountId, setSignedAccountId] = useState(null);
@@ -46,7 +46,7 @@ function App({code, wProps, flags, vsContext}) {
   }, [account]);
 
   const viewerProps = {
-    refreshAllowance: () => {},
+    refreshAllowance: () => { },
     setWidgetSrc,
     signedAccountId,
     signedIn,

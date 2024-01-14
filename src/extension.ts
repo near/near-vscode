@@ -87,6 +87,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   watcher.onDidChange(async (document: vscode.Uri) => {
     updateFlags(localWorkspace, document);
+
+    if(previewPanel.panel && previewPanel.panel.visible){
+      preview(previewPanel, log);
+    }
   });
 
   watcher.onDidDelete(async (document: vscode.Uri) => {

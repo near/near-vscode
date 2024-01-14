@@ -13,7 +13,7 @@
     "https": "^1.0.0",
     "local-storage": "^2.0.0",
     "near-api-js": "^1.1.0",
-    "near-social-vm": "git+https://github.com/NearSocial/VM.git#2.5.2",
+    "near-social-vm": "git+https://github.com/NearSocial/VM.git#2.5.5",
     "prettier": "^2.7.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.9.1",

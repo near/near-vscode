@@ -11,7 +11,7 @@ export const handleTransactionCallback = async (uri: vscode.Uri, context: vscode
     const tHash = queryParams.get('transactionHashes') as string;
 
     const result = await getTransactionStatus(tHash, networkId);
-    const explorerURL = `https://explorer.near.org/transactions/${tHash}`;
+    const explorerURL = `https://nearblocks.io/txns/${tHash}`;
     const action = (selection?: string) => { selection ? vscode.env.openExternal(vscode.Uri.parse(explorerURL)) : ""; };
 
     if (result.succeeded) {

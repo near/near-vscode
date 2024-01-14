@@ -28,7 +28,8 @@ export const addKeyForContract = async (context: vscode.ExtensionContext, localW
     // Create the login URL and redirect the user to login
     const networkId = await getFromContext(localWorkspace, 'networkId') || "mainnet";
 
-    let url = `https://wallet.${networkId}.near.org/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}&account_id=${accountId}`;
+    const prefixUrl = networkId === 'testnet' ? 'testnet' : 'app';
+    let url = `https://${prefixUrl}.mynearapp.com/login/?title=${APP_NAME}&success_url=${callback}&contract_id=${contractId}&public_key=${publicKey}&account_id=${accountId}`;
     vscode.env.openExternal(vscode.Uri.parse(url));
   } else {
     vscode.window.showErrorMessage('Invalid Contract ID');

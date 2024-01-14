@@ -46,8 +46,16 @@ export const transactionForPublishingCode = async (accountId: AccountId, widgetN
   const blockHash = naj.utils.serialize.base_decode(block.header.hash);
 
   // Amount to pay, based on the size of the data we are storing
-  // TODO: Improve this
-  const amount = new BN(JSON.stringify(data).length + DATA_OVERHEAD).mul(COST_PER_BYTE);
+  const widgetCode = await getWidgetCode(accountId, widgetName, networkId);
+
+  let amount;
+
+  if (widgetCode.length > 0) {
+    const diff = JSON.stringify(code).length - JSON.stringify(widgetCode).length;
+    amount = diff > 0 ? new BN(diff).mul(COST_PER_BYTE) : new BN(0);
+  } else {
+    amount = new BN(JSON.stringify(data).length + DATA_OVERHEAD).mul(COST_PER_BYTE);
+  }
 
   // Create the transaction
   const actions = [transactions.functionCall('set', data, TGAS30, amount)];
